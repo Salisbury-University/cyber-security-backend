@@ -1,3 +1,10 @@
+# Link to Discusssion
+
+[project.org](https://github.com/Salisbury-University/cyber-security-backend/blob/master/project.org)
+
+[Info on LDAP](https://github.com/orgs/Salisbury-University/teams/425-cybersecurity/discussions/10/comments/1)
+
+
 # Express Typescript Template
 An opinionated project scaffold for a REST API with express / typescript.
 
