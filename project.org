@@ -1,0 +1,702 @@
+#+TITLE: Project
+
+* Cyber Security Lab
+** Overview
+The cyber security lab needs software to manage VMs/users/problems and an interface for normal students / faculty to launch these VMs and view the problem sets.
+
+All problems will be written in markdown and contain frontmatter information regarding the metadata for the document.
+
+** Expected Features
+*** Backend
+- Authenticate against the LDAP API
+- API for launching a VM for a specific problem & user
+- Interacting with the Proxmox API to launch new VMs based on the template
+- Load balancing based on how many VMs are running on a given cluster node
+- Automated cleanup of running VMs based on a set time limit.
+- API routes for killing VMs, viewing running VMs, logged in users, etc.
+- Strict automated unit testing on pull request
+- Database for storing problemsets, user preferences and maybe other future features
+- Parsing markdown files with frontmatter from a github repository into the database.
+- Private / public exercises (so development exercises aren't viewable by public)
+- Input validation on requests
+*** Frontend
+- Index page with problem sets, maybe in a blog style card index?
+- Individual problem pages with markdown rendered text.
+- Ability to launch a VM for the specific problem and logged in user and fetch the connection info
+- Persistent behavior on browser refresh (i.e. if they refresh while connected to a VM)
+- Dark mode / light mode toggle via a button / checkbox in settings
+
+** Technologies
+*** Backend
+- Node.js - Backend javascript runtime
+- Express.js - Lightware javascript web framework
+- Typescript - Stricter / more sane javascript
+- DotEnv - Allows parsing a .env file into the program as variables
+- Axios - Web API calls for authenticating
+- Japa / Supertest - Unit Testing
+- Postman - API testing utility
+- PostgreSQL - Relational Database
+- Prisma - Database ORM
+- Zod - Input validation
+
+*** Frontend
+- Vue.js 3 w/ composition API
+- Pinia - Data store
+- Typescript - Stricter / more sane javascript
+- Quasar - CSS Framework
+- DotEnv - Allows parsing a .env file into the program as variables
+- Marked.js (most likely) - String -> markdown converter
+- Mdx (instead of marked.js) - String -> markdown converter with extra features
+- timeago.js - Converts time into "12 seconds ago", "2 years ago"..etc style strings
+
+** Software Workflow
+The software development workflow we'll be following is modeled after the processes you'll experience in the real world.
+
+- I'm going to give you the project requirements in the form of a spec sheet for the backend, and some requests for the frontend.
+- Your team leader will break up the project into smaller managable 2 week goals (sprints).
+- Every sprint, your team leader will create "Issues" on the project for tasks related to to the sprint goals or fixing bugs
+- These issues will then be assigned to your team members by the team leader.
+- Create a new github branch for the feature based off of the master branch
+- Switch to branch on local dev environments
+	- Write unit tests until you cover every case you can think of (Come back and implement more if you think of them).
+	- Implement feature
+	- Run unit tests until successful (return to implement feature if unsuccessful)
+- Create pull request for feature to merge to master branch when finished
+	- Check if the automated unit tests run successfully in the pull request
+		- If they don't pass, fix it.
+	- Code review with me / team
+	  - If no issues we merge the request and handle any merge conflicts
+	  - Otherwise, return to implementing until the standards are met.
+
+The Kanban board / project board we'll be using will have 5 main categories that will be used to track the progress of each task.
+1. TODO - Items assigned, but not yet in progress
+2. In Progress - Actively working on the task
+3. Under Review - Work is /completed/ and a pull request has been opened for the code to be reviewed and potentially merged. Code review responsibility should go to the team leader, or someone that didnt' work on the feature.
+4. Final Review - The peer review has completed, and now I'll review the code.
+5. Done - We merge the code and close the issue.
+
+In the event that either review fails, we send the task back to *In Progress*.
+
+** Coding Standards
+We need to settle on a set list of coding standards so our project doesn't become ugly. We will be mostly following [[https://google.github.io/styleguide/tsguide.html][Google's Typescript Style Guide]] with the addition of docstrings for documentation.
+
+I'll give a little tl;dr here to minimally get started, but if you have any questions, you should refer to their style guide.
+
+*** Editor Settings
+- Tab / indentation: 2 spaces
+- New line character: \n (no \r\n from windows)
+
+*** Functions
+A new function should follow this sort of format
+#+begin_src typescript :exports code
+/**
+ * A short description of the function
+ *
+ * @param {Request} req A request object from express
+ * @param {Response} res A response object from express
+ *
+ * @return {Promise} Returns a void promise
+ */
+function someFunctionName(req: Request, res: Response): Promise<void> {
+    // do some stuff
+}
+#+end_src
+
+Breaking this down...
+- the documentation above the function is called a docstring. It documents the purpose of the function and the expected input and output. In modern IDEs, it will also be the information that pops up if you hover the function call from another file.
+- The function is defined with explicit types for the arguments
+- The function has a defined return type
+- The bracket opening the function is on the same line {
+- Lower camel case naming convention
+
+*** Classes / objects
+#+BEGIN_SRC typescript :exports code
+/*
+ * A short description of the class
+ */
+class MyClass {
+	/** @param {string=} someString */
+	constructor(someString: String = 'default string') {
+		/** @private @const {string} */
+		this.someString_ = someString;
+	}
+}
+
+const SomeObject = {
+	/**
+	,* A very useful function description
+	,*
+	,* @param {Request} req Express request object
+	,* @param {Response} res Express response object
+	,*/
+	aUsefulFunction(req: Request, res: Response) {
+		// do some stuff
+	}
+}
+
+#+END_SRC
+You'll notice the same docstrings here, but also for the properties of the class and not just functions.
+The class and objects also use camelcase but the first letter is upper case.
+
+Refer to me or the style guide for other formatting questions. Any formatting issues will cause a pull request to be denied to maintain a clean and readble codebase.
+
+** Skills / knowledge required or suggested
+- Vue.js
+	- Components
+	- Events
+	- Templates / views
+	- Composition API
+	- State management (with Pinia)
+	- Frontend routing
+	- Vue.js lifecycle hooks
+	- Reactivity (refs, reactive, computed / watch, etc)
+	- Single file components
+	- Conditional rendering
+	- List rendering
+	- Props / how data flows through components
+	- ``<script setup>`` style components
+	- Data binding / form input binding
+	- Directives
+- Javascript / Typescript
+- Asynchronous programming & promises
+- Express.js
+	- Routing
+	- Middleware
+	- Error / exception handling
+	- Database integration
+	- How to build a REST API with Express.js
+- Databases
+	- Migration scripts
+	- Seeders
+	- ORMs
+- Docstrings
+- Unit Testing /w Japa
+- Github actions
+- HTTP Status Codes
+- Axios
+
+** Project Specification
+*** Backend API Routes
+**** Authentication Routes
+***** POST /api/v1/auth/login
+****** Overview
+Authentication endpoint.
+
+****** Expected Functionality
+Authenticate users against the LDAP API by sending a POST request to that server using the credentials we receive.
+
+Should have some sort of rate limiting to prevent people from spamming the endpoint to crack passwords.
+
+****** Expected Input
+Should be a POST request containing JSON in the body. The JSON should handle the following fields
+
+#+BEGIN_SRC json
+{
+	"username": "cxarausa",
+	"password": "somepassword",
+	"route": "the attempted route (if any)"
+}
+#+END_SRC
+
+****** Expected Response
+******* Success
+JSON containing a JWT token for their session and the route they attempted to access before authentication.
+
+#+BEGIN_SRC json
+{
+	"token": "asdkfjhasdklf",
+	"route": "/"
+}
+#+END_SRC
+
+******* Failure
+Forbidden exception
+
+***** POST /api/v1/auth/logout
+****** Overview
+This route should sign out the user by invalidating their JSON Web Token.
+
+****** Expected Functionality
+Invalidate the JSON Web Token by removing it from any internal data store and telling the LDAP API to invalidate it as well. That way, next time we attempt to validate the token, it errors from not being found.
+
+****** Expected Input
+The input should be the authorization header containing the web token. It looks something like this
+
+#+BEGIN_SRC
+Authorization: Bearer <token>
+#+END_SRC
+
+****** Expected Response
+******* Success
+HTTP Code 200 for success.
+
+There is no failure here, even if they aren't logged in.
+**** Exercise Routes
+These routes deal with individual exercises
+***** GET / api/v1/exercise/:id
+****** Overview
+This route should fetch an exercise's contents, metadata, and whether the user has completed the problem.
+
+****** Expected Functionality
+- Check if an exercise exists
+	- Return 404 if missing
+- Check if the user has access to the problem (if it's private)
+- Check if the logged in user has completed the problem
+- Return the exercise, metadata, and status of the problem for the user
+
+****** Expected Input
+The expected input won't be a body, but rather the authentication token in the headers.
+
+The header we're looking for looks like
+#+BEGIN_SRC
+Authorization: Bearer <token>
+#+END_SRC
+
+****** Expected Output
+******* Success
+The expected response will be a JSON body containing the exercise's contents, as well as any metadata.
+
+#+BEGIN_SRC json
+{
+	"id": "exercise id",
+	"content": "exercise content in markdown",
+	"metadata": {
+		"dateCreated": "some date",
+		"dateUpdated": "some other date",
+		"privilege": "students",
+		"author": "some author",
+		"privacy": "public | private"
+	},
+	"status": "completed | in progress | incomplete"
+}
+#+END_SRC
+
+******* Failure
+404 exception if the document is missing
+403 if user is logged in but doesn't have permissions to view
+401 if user is not logged in and redirect to sign in (maybe return the route with the JSON in the 401)
+
+***** POST / api/v1/exercise/:id/status
+****** Overview
+This route should update a user's status on whether they've viewed / completed the problem.
+
+****** Expected Functionality
+- Check if an exercise exists
+	- Return 404 if missing
+- Check if the user has access to the problem (if it's private)
+- Set the problem status
+- Return the metadata, and status of the problem for the user
+
+****** Expected Input
+The expected input will be both a body and an authentication token in the headers.
+
+The header we're looking for looks like
+#+BEGIN_SRC
+Authorization: Bearer <token>
+#+END_SRC
+
+The body we should expect
+#+BEGIN_SRC json
+{
+	"id": "exercise id",
+	"status": "completed | in progress | incomplete"
+}
+#+END_SRC
+
+****** Expected Output
+******* Success
+The expected response will be a JSON body containing the exercise's metadata and the new status of the problem.
+
+#+BEGIN_SRC json
+{
+	"id": "exercise id",
+	"metadata": {
+		"dateCreated": "some date",
+		"dateUpdated": "some other date",
+		"privilege": "students",
+		"author": "some author",
+		"privacy": "public | private"
+	},
+	"status": "completed | in progress | incomplete"
+}
+#+END_SRC
+
+******* Failure
+404 exception if the document is missing
+403 if user is logged in but doesn't have permissions to view
+401 if user is not logged in and redirect to sign in (maybe return the route with the JSON in the 401)
+
+**** Exercises Routes
+These routes are for dealing with multiple exercises at once.
+
+***** GET /api/v1/exercises
+****** Overview
+This route should fetch the full list of exercise ids the user has access to.
+
+****** Expected Functionality
+- Fetch a list of exercises from the database using a filter or something to only return ones the user has access to.
+- Return the exercises
+
+****** Expected Input
+The expected input won't be a body, but rather the authentication token in the headers.
+
+The header we're looking for looks like
+#+BEGIN_SRC
+Authorization: Bearer <token>
+#+END_SRC
+****** Expected Output
+The expected response will be a JSON body containing a list of exercise ids
+
+#+BEGIN_SRC json
+{
+	"exercises": [
+		"id1",
+		"id2",
+		"id3"
+	]
+}
+#+END_SRC
+
+***** GET / api/v1/exercises/:page
+****** Overview
+This route should fetch a list of exercise ids that the user has access to, but only in a specific range. We'll define a maximum number of exercises per page, such as 10 or 15, and then use this route to create pagination in the frontend.
+
+****** Expected Functionality
+- Fetch a list of exercises from the database using a filter or something to only return ones the user has access to and only return X amount of results between the given range.
+- Return the exercises
+
+****** Expected Input
+The expected input won't be a body, but rather the authentication token in the headers.
+
+The header we're looking for looks like
+#+BEGIN_SRC
+Authorization: Bearer <token>
+#+END_SRC
+****** Expected Output
+The expected response will be a JSON body containing a list of exercises
+
+#+BEGIN_SRC json
+{
+	"exercises": [
+		"id1",
+		"id2",
+		"id3"
+	]
+}
+#+END_SRC
+
+**** Search Routes
+We need some sort of routes to handle searching for specific challenges, or when the wiki comes online, searching that as well.
+
+***** GET /api/v1/search/exercises?somequery
+****** Overview
+This route could handle a generic GET style query for exercises.
+
+We can add more filters later if needed by just adding paramters to the GET string and tweaking the output JSON.
+****** Expected Functionality
+It should search the contents and title of every exercise the **user has access to.**
+
+****** Expected Input
+Our expected input is an Authorization header and a search string.
+
+The header we're looking for looks like
+#+begin_src
+Authorization: Bearer <token>
+#+end_src
+
+The search string will follow typical GET request string formats.
+****** Expected Output
+The output will be a JSON object containing matching exercises, the context of the match, and the metadata for the exercise.
+
+#+BEGIN_SRC json
+{
+	"search": "the search string",
+	"results": [
+		{
+			"id": "exercise id",
+			"match": "the matching string context. Maybe the paragraph, and we can narrow it clientside if we want.",
+			"metadata": {
+				"dateCreated": "some date",
+				"dateUpdated": "some other date",
+				"privilege": "students",
+				"author": "some author"
+			}
+		},
+		{
+			// object 2
+		},
+		...
+	]
+}
+#+END_SRC
+
+**** Preference Routes
+***** POST /api/v1/preferences
+****** Overview
+This route should update the currently logged in user's preferences.
+
+****** Expected Functionality
+- Check if the user is logged in
+	- If not, 401
+- Input check the preferences
+	- If there is an issue with the preferences, return 422 unprocessable identity
+- Update the preferences in the db
+- Return the new preferences
+
+****** Expected Input
+The expected input is both a body and an authentication header.
+
+The header we're looking for looks like
+
+#+begin_src
+Authorization: Bearer <token>
+#+end_src
+
+The body should look like this
+
+#+BEGIN_SRC json
+{
+	"preferences": {
+		"darkmode": true,
+		...
+	}
+}
+#+END_SRC
+
+****** Expected Output
+******* Success
+The expected output should be a JSON object of the new preferences
+
+#+BEGIN_SRC json
+{
+	"preferences": {
+		"darkmode": true,
+		...
+	}
+}
+#+END_SRC
+******* Failure
+401 - if the user isn't logged in
+422 - if the preferences are bad / don't pass input validation
+
+***** GET /api/v1/preferences
+****** Overview
+This route should fetch a user's preferences.
+
+****** Expected Functionality
+- Check if user is logged in
+	- 401 exception if not
+- Fetch user preferences from db
+- Return as a JSON object
+
+****** Expected Input
+The expected input won't be a body, but rather the authentication token in the headers.
+
+The header we're looking for looks like
+
+#+begin_src
+Authorization: Bearer <token>
+#+end_src
+
+****** Expected Output
+******* Success
+On success, the route should return a list of the user's preferences
+
+#+BEGIN_SRC json
+	"preferences": {
+		"darkmode": true,
+		...
+	}
+#+END_SRC
+******* Failure
+The only failure should be if the user isn't logged in
+- 401 not logged in
+
+**** User Routes
+***** GET / api/v1/user/:id
+****** Overview
+This route should fetch a user's information, by their ID / username.
+
+****** Expected functionality
+- Check if the user exists
+	- Return 404 if missing
+- Return the user's information
+
+****** Expected Input
+There is no expected input since the route contains the username of the user we're searching up, and the request is unprivileged.
+
+In the future we might limit the visible returned data based on the privilege level of the requesting user.
+****** Expected Output
+The output should be a JSON body containing the user's information
+
+Example below
+
+#+BEGIN_SRC json
+{
+	"cxarausa": {
+		"id": "cxarausa",
+		"groups": ["faculty", "users", "cyber"],
+		"vms": ["cxarausa-problem1"]
+	}
+}
+#+END_SRC
+
+**** Virtual Machine Routes
+***** GET / api/v1/exercise/:id/start
+****** Overview
+This route should request a VM for the given problem.
+
+****** Expected Functionality
+- Check if user is logged in
+	- 401 if not logged in
+- Validate user has no other running VMs
+	- 403 or 409 status code. only one VM allowed pe ruser at a time.
+- Check load on individual cluster nodes
+- Launch VM on the lowest utilized node
+- Return connection information
+
+****** Expected Input
+The input should just be the authorization header.
+
+The header we're looking for looks like
+
+#+begin_src
+Authorization: Bearer <token>
+#+end_src
+
+****** Expected Output
+The output should be all the data about the VM. Below is an example of a likely minimum amount of data.
+
+#+BEGIN_SRC json
+{
+	"vm": "vm id such as cxarausa-problem2",
+	"exercise": "exercise id"
+	"node": "node1",
+	"connection": {
+		"ip": "some ip address",
+		"port": some port integer
+	},
+	"user": "user who owns the vm such as cxarausa",
+	"timeLimit": "1h",
+	"timeStart": datetime the vm started,
+	"timeEnd": datetime the VM auto termiantes
+}
+#+END_SRC
+
+***** GET / api/v1/vm/:id
+****** Overview
+This route should get information for a currently running VM, who requested it, how long it's been up, what problem it's associated with, what template it's associated with.
+
+****** Expected Functionality
+- Check if user is logged in
+	- Throw 401 error if not logged in
+- Check if they have access to the VM
+	- Throw 403 if they don't have access
+- Return VM information
+****** Expected Input
+The input should just be the authorization header.
+
+The header we're looking for looks like
+
+#+begin_src
+Authorization: Bearer <token>
+#+end_src
+
+****** Expected Output
+The output should be all the data about the VM. Below is an example of a likely minimum amount of data.
+
+#+BEGIN_SRC json
+{
+	"vm": "vm id such as cxarausa-problem2",
+	"exercise": "exercise id"
+	"node": "node1",
+	"connection": {
+		"ip": "some ip address",
+		"port": some port integer
+	},
+	"user": "user who owns the vm such as cxarausa",
+	"timeLimit": "1h",
+	"timeStart": datetime the vm started,
+	"timeEnd": datetime the VM auto termiantes
+}
+#+END_SRC
+
+***** GET / api/v1/vm/:id/terminate
+****** Overview
+This route should terminate a VM if the user who owns the VM requests it, or the admin does.
+
+****** Expected Functionality
+- Check if user is logged in
+	- Throw 401 error if not logged in
+- Check if they have access to the VM
+	- Throw 403 if they don't have access
+- Terminate VM
+
+****** Expected Input
+The input should just be the authorization header.
+
+The header we're looking for looks like
+
+#+begin_src
+Authorization: Bearer <token>
+#+end_src
+****** Expected Output
+The output should just be the VM information before it got deleted.
+
+#+BEGIN_SRC json
+{
+	"vm": "vm id such as cxarausa-problem2",
+	"exercise": "exercise id"
+	"node": "node1",
+	"connection": {
+		"ip": "some ip address",
+		"port": some port integer
+	},
+	"user": "user who owns the vm such as cxarausa",
+	"timeLimit": "1h",
+	"timeStart": datetime the vm started,
+	"timeEnd": datetime the VM auto termiantes
+}
+#+END_SRC
+
+*** Frontend
+**** Pages
+***** Sign in / Registration
+We obviously need a sign in / registration page.
+
+Could also make it a modal that pops up over the current page when you click sign in if we wanted. I can show how to do it, or give resources on that kinda thing.
+
+***** Index
+Landing page. Not sure how to style it or what to put on here. But here are some ideas of content we can use to fill space.
+
+- Different categories of challenges, such as trending (things people are doing recently), new / recently uploaded, most popular, etc.
+- The same thing, but for wiki pages / articles.
+- Some pinned basic articles for getting started
+- Course / track overviews for the different routes you could study in cyber security
+
+We should draw up a few different design ideas and talk about what it could look like. But let's do something simple to get it off of the ground for now.
+
+***** Challenge Pages
+Individual pages built to match the challenges we upload. When someone visits a route, such as cyber.salisbury.edu/challenge/some_challenge_id, it should match the challenge id against our existing challenges, and populate the page based on the challenge data. Or return a 404 page if the challenge doesn't exist.
+
+The main page space should be occupied by the problem description & title.
+
+There should be a secondary space for maybe the title again, problem author, and controls for the VM / starting the problem.
+
+We can alter the layout later on when we add a VNC viewer to view the VM. But a simple bloglike layout should work to get us started.
+
+***** Search
+I have no idea what this should look like. But we probably need a dedicated search page, and a results page. You can probably double them up into one page with resutls below the search bar and filter options for what you're trying to query.
+
+***** Wiki Pages / Articles
+Dunno. look at wikipedia or other stuff. We just need some form of knowledge store / articles for stuff we research
+
+** Post-project additions
+These are some features to think about if we finish early and we want to continue (instead of switching to another project)
+*** Cyber Security Wiki
+More or less the same technologies as we're already using, markdown rendering, github repo of knowledge, etc.
+
+It's just not critical to getting the lab off of the ground. So it's something we'll add if we get there.
+
+*** VNC Viewer in browser
+Since each VM already has a VNC viewer built into it because of proxmox, maybe we can connect to this in the browser and have the user able to interact directly with the VM.
