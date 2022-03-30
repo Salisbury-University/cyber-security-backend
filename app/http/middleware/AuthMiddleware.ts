@@ -10,8 +10,8 @@ import UnauthorizedException from '../../exceptions/UnauthorizedException'
  * @param next {NextFunction} Express next function
  */
 export default async function (req: Request, res: Response, next: NextFunction) {
-	// Check request headers for authorization token of some kind
-	// We'll just assume the entire authorization header is the token for the example.
+	// Get the second half of the authorization header
+	// Example header: Bearer akviakocalkw123kavniwa
 	const token = req.headers.authorization.split(" ")[1]
 
 	// If the auth service doesn't validate the user	
@@ -19,6 +19,7 @@ export default async function (req: Request, res: Response, next: NextFunction) 
 		return next(new UnauthorizedException());
 	}
 
+	// Assign user information
 	req.user = AuthService.decodeToken(token);
 
 	// Go to the next middleware / controller
