@@ -1,7 +1,7 @@
 import BaseException from "./BaseException";
 
 /**
- * Exception class tailored to 401 Unauthorized exceptions.
+ * Exception class tailored to 400 Jwt malformed exceptions.
  *
  * Contains a default error message and sets the HTTP response status.
  */
