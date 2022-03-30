@@ -6,12 +6,12 @@ test.group('AuthService', () => {
   /**
    * Basic token data
    */
-  const data = {
+  const DATA = {
     u_id: "test1",
     password: "password"
   }
   const SECRET_TOKEN:String = "Secret"
-  const token:String = jwt.sign(data, SECRET_TOKEN)
+  const TOKEN:String = jwt.sign(DATA, SECRET_TOKEN)
 
   /**
    * This is place holder for now. Once LDAP is able to run will replace this
@@ -25,6 +25,6 @@ test.group('AuthService', () => {
    * Testing JWT decode function.
    */
   test('JWT_decode', ({expect})=>{
-    expect(AuthService.decodeToken(token)).toMatchObject(data)
+    expect(AuthService.decodeToken(TOKEN)).toMatchObject(DATA)
   })
 })
