@@ -2,15 +2,14 @@ import { PrismaClient } from '.prisma/client';
 import jwt from 'jsonwebtoken'
 
 const prisma = new PrismaClient()
-
 /**
- * An example of an authorization service to validate authorization tokens, or attempt sign ins.
+ * All of the functions regarding authorization
  */
 export const AuthService = {
 	/**
 	 * Validates an authorization token for authentication.
 	 *  
-	 * @param token Authorization token attached to the HTTP header.
+	 * @param {String} token Authorization token attached to the HTTP header.
 	 * @return {boolean} True if their token is valid, false if it isn't.
 	 */
 	validate(token: String): boolean {
