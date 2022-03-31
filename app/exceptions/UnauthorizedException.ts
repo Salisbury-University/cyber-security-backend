@@ -6,7 +6,7 @@ import BaseException from "./BaseException";
  * Contains a default error message and sets the HTTP response status.
  */
 export default class UnauthorizedException extends BaseException {
-	constructor(message: string = "Unauthorized Access") {
+	constructor(message: string = "Failure Forbidden") {
 		super(message, 401);
 	}
 }
