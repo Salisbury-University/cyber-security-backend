@@ -19,9 +19,13 @@ export default async function (
     ? req.headers.authorization
     : "";
 
-  // Validate if it starts with authorization token word and
-  // if it is a two words.
+  // Validate if it starts with authorization token word
   if (!AuthService.validate(TOKEN)) {
+    return next(new UnauthorizedException());
+  }
+
+  // Checks if there is more than one word in the authorization header
+  if (TOKEN.split(" ").length < 1) {
     return next(new UnauthorizedException());
   }
 

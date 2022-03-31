@@ -16,14 +16,6 @@ test.group("AuthService", () => {
   const TOKEN: String = jwt.sign(DATA, SECRET_TOKEN);
 
   /**
-   * This is place holder for now. Once LDAP is able to run will replace this
-   */
-  test("Token validation", ({ expect }) => {
-    // Test logic goes here
-    expect(AuthService.validate("Hello world")).toEqual(true);
-  });
-
-  /**
    * Testing JWT decode function.
    */
   test("JWT success decode", ({ expect }) => {
@@ -33,23 +25,26 @@ test.group("AuthService", () => {
   /**
    * Test when token has been altered
    */
-  test("JWT malformed token", ({ expect }) => {
+  test("JWT malformed token", async ({ expect }, done: Function) => {
+    const RANDOM = TOKEN.concat("ljas;dlkfj;al");
     try {
-      AuthService.decodeToken(TOKEN.replace("i", "vert"));
+      await AuthService.decodeToken(RANDOM);
     } catch (e) {
       expect(e).toBeInstanceOf(JwtMalformedException);
+      done();
     }
-  });
+  }).waitForDone();
 
   /**
    * Testing when token is empty
    */
-  test("JWT empty token", ({ expect }) => {
+  test("JWT empty token", async ({ expect }, done: Function) => {
     const EMPTY_TOKEN: String = "";
     try {
-      AuthService.decodeToken(EMPTY_TOKEN);
+      await AuthService.decodeToken(EMPTY_TOKEN);
     } catch (e) {
       expect(e).toBeInstanceOf(JwtMalformedException);
+      done();
     }
-  });
+  }).waitForDone();
 });
