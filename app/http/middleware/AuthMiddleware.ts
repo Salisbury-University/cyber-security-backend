@@ -23,11 +23,11 @@ export default async function (
   }
 
   // Checks if the authorization starts with Bearer
-  if (!req.headers.authorization.startsWith("Bearer"))
+  if (!req.headers.authorization.startsWith("Bearer "))
     return next(new UnauthorizedException());
 
   // This doesn't do anything for now.
-  // This will change to validate the token again LDAP later
+  // This will change to validate the token against LDAP later
   if (!AuthService.validate(token)) {
     return next(new UnauthorizedException());
   }
