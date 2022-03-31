@@ -1,16 +1,7 @@
 import express from 'express';
-import jwt from 'jsonwebtoken';
 import { config } from "../../config";
-import NotFoundException from "../exceptions/NotFoundException";
-import InvalidCredentialException from "../exceptions/InvalidCredentials";
-import UserDuplicateException from "../exceptions/UserDuplicateException";
-import { prisma } from '@prisma/client';
 import axios, { Axios } from 'axios';
-import { ref } from 'vue';
 
-const username: any = ref(null)
-const password: any = ref(null)
-const route: any = ref(null)
 /**
  * An example of an authorization service to validate authorization tokens, or attempt sign ins.
  */
@@ -28,39 +19,25 @@ export const AuthService = {
 		return false;
 	},
 
-    async validateLogin(username: string, password) {
+    async validateLogin(uid: string, password) {
 		
-	   
-		axios.post('hslinux:38383/api/v1/auth', {
-			uid: 'Fred',
-			password: 'Flintstone'
+	   var data
+		await axios.post('hslinux:38383/api/v1/auth', {
+			uid: uid,
+			password: password
 		  })
 		  .then(function (response) {
-			console.log(response.data);
+			data = console.log(response.data);
+			
 		  })
 		  .catch(function (error) {
-			console.log(error);
+			if (error.response) {
+				console.log(error.response.status);
+			  }
 		  });
 	 	
-		// const user = await prisma.user.findUnique({
-		// 	where: { username: username }
-		// });
-		
-		// //User does not exist
-		// if(user == null)
-		// 	throw new NotFoundException();
+		  return data;
 
-		// //Invalid credentials
-		// if(user.password != password)
-		// 	throw new InvalidCredentialException();
-
-		// //Create JWT
-		// const info = {
-		// 	username: user.username,
-		// 	password: user.password,
-		// }
-		// const token = jwt.sign(info, config.auth.ACCESS_TOKEN);
-		// return token;
 	}
 
 }

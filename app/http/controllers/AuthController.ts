@@ -1,7 +1,8 @@
 import { NextFunction, Request, Response } from "express";
 import { AuthService } from "../../services/AuthService";
 import axios, { Axios } from "axios";
-import { ref } from 'vue'
+import NotFoundException from "../../exceptions/NotFoundException";
+
 
 export const AuthController = {
 
@@ -16,18 +17,19 @@ export const AuthController = {
     
  async login(req: Request, res: Response, next: NextFunction) {
 
-    const data = {
-        username: this.username,
-        password: this.password
-    };
+    try {
+        let uid = req.body.uid
+        if (!uid)
+            uid = req.body.uid
+        if (!req.body.password)
+            throw new NotFoundException
 
-    axios.post('hslinux:38383/api/v1/auth', data) 
-        .then(res=> {
-            console.log(res) 
-        })
-        .catch(err => {
-            console.log(err)
-        })
+        const token = await AuthService.validateLogin(uid, req.body.password)
+    }
+    catch (e) {
+        return next(e)
+    }
+        
     },
 
 }
