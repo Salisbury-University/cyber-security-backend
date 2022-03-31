@@ -25,7 +25,7 @@ export default async function (
   }
 
   // Checks if there is more than one word in the authorization header
-  if (TOKEN.split(" ").length < 1) {
+  if (TOKEN.split(" ").length < 2) {
     return next(new UnauthorizedException());
   }
 
