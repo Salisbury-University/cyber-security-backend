@@ -14,28 +14,21 @@ export default async function (
   res: Response,
   next: NextFunction
 ) {
-  // Checks if there is at least two word in authorization header
-  let token: String;
-  try {
-    token = req.headers.authorization.split(" ")[1];
-  } catch (e) {
-    return next(new UnauthorizedException());
-  }
+  // Gets the authorization, empty string if no value in authorization header
+  const TOKEN: String = req.headers.authorization
+    ? req.headers.authorization
+    : "";
 
-  // Checks if the authorization starts with Bearer
-  if (!req.headers.authorization.startsWith("Bearer "))
-    return next(new UnauthorizedException());
-
-  // This doesn't do anything for now.
-  // This will change to validate the token against LDAP later
-  if (!AuthService.validate(token)) {
+  // Validate if it starts with authorization token word and
+  // if it is a two words.
+  if (!AuthService.validate(TOKEN)) {
     return next(new UnauthorizedException());
   }
 
   // Assign user information
-  // Returns the error if the token retuns null
+  // Returns the error(JWTMalformedException) if the token retuns null
   try {
-    req.user = AuthService.decodeToken(token);
+    req.user = AuthService.decodeToken(TOKEN.split(" ")[1]);
   } catch (e) {
     return next(e);
   }
