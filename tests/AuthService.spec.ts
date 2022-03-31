@@ -26,13 +26,28 @@ test.group("AuthService", () => {
   /**
    * Testing JWT decode function.
    */
-  test("JWT_decode", ({ expect }) => {
+  test("JWT success decode", ({ expect }) => {
     expect(AuthService.decodeToken(TOKEN)).toMatchObject(DATA);
   });
 
-  test("JWT_decode_Error", ({ expect }) => {
+  /**
+   * Test when token has been altered
+   */
+  test("JWT malformed token", ({ expect }) => {
     try {
       AuthService.decodeToken(TOKEN.replace("i", "vert"));
+    } catch (e) {
+      expect(e).toBeInstanceOf(JwtMalformedException);
+    }
+  });
+
+  /**
+   * Testing when token is empty
+   */
+  test("JWT empty token", ({ expect }) => {
+    const EMPTY_TOKEN: String = "";
+    try {
+      AuthService.decodeToken(EMPTY_TOKEN);
     } catch (e) {
       expect(e).toBeInstanceOf(JwtMalformedException);
     }
