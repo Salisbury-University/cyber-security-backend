@@ -28,9 +28,18 @@ export const AuthService = {
    */
   decodeToken(token: String): JSON {
     const PAYLOAD: JSON = jwt.decode(token, { json: true });
+
+    // Check malformed Token
     if (PAYLOAD === null) {
       throw new JwtMalformedException();
     }
+
+    // Check iat malform
+    const CURRENT_TIME = Math.floor(Date.now() / 1000);
+    if (PAYLOAD.iat > CURRENT_TIME) {
+      throw new JwtMalformedException();
+    }
+
     return PAYLOAD;
   },
 };

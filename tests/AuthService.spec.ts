@@ -47,4 +47,28 @@ test.group("AuthService", () => {
       done();
     }
   }).waitForDone();
+
+  /**
+   * Iat is later than current time
+   * Iat is calculated by adding seconds to current time from Jan. 1. 1970 at 12:00 AM
+   * Date.now() shows Date of current in milliSeconds so it is divided in 1000 to make it in to seconds
+   */
+  test("JWT iat error", async ({ expect }, done: Function) => {
+    // Alter iat to fail
+    const DECODED = jwt.decode(TOKEN);
+    DECODED.iat += 1000;
+
+    // Resign the Token with altered iat
+    const NEW_TOKEN = jwt.sign(DECODED, SECRET_TOKEN);
+
+    // Current time
+    const CURRENT_TIME = Math.floor(Date.now() / 1000);
+
+    try {
+      await AuthService.decodeToken(NEW_TOKEN);
+    } catch (e) {
+      expect(e).toBeInstanceOf(JwtMalformedException);
+      done();
+    }
+  }).waitForDone();
 });
