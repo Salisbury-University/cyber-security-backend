@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import axios from "axios";
+import { VirtualMachineService } from "../../services/VirtualMachineService";
 
 export const VirtualMachineController = {
   /**
@@ -8,5 +8,13 @@ export const VirtualMachineController = {
    * @param res
    * @param next
    */
-  getVM(req: Request, res: Response, next: NextFunction) {},
+  async getVM(req: Request, res: Response, next: NextFunction) {
+    try {
+      res.send(
+        await VirtualMachineService.getVM(req.params["id"], req.user.u_id)
+      );
+    } catch (e) {
+      return next(e);
+    }
+  },
 };
