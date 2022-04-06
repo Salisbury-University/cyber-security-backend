@@ -8,7 +8,7 @@ import { VM } from "@prisma/client";
 declare global {
   namespace Express {
     interface Request {
-      user?: JSON;
+      user?: any;
       VM?: VM;
     }
   }

@@ -1,5 +1,4 @@
 import { PrismaClient, VM } from ".prisma/client";
-import axios from "axios";
 import UnauthorizedException from "../exceptions/UnauthorizedException";
 
 const prisma = new PrismaClient();
