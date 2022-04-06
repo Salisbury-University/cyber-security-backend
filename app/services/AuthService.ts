@@ -1,6 +1,8 @@
 import express from 'express';
-import { config } from "../../config";
-import axios, { Axios } from 'axios';
+import axios from 'axios';
+import InvalidCredentialException from '../exceptions/InvalidCredentials';
+import UnprocessableEntityException from '../exceptions/UnprocessableEntityException';
+import { z } from 'zod';
 
 /**
  * An example of an authorization service to validate authorization tokens, or attempt sign ins.
@@ -19,25 +21,35 @@ export const AuthService = {
 		return false;
 	},
 
-    async validateLogin(uid: string, password) {
+	async validateLogin(uid: string, password: string) {
 
-		
-	    var data
-		await axios.post('hslinux:38383/api/v1/auth', {
-		uid: uid,
-		password: password
-		  })
-		  .then(function (response) {
-		data = console.log(response.data);
-			
-		  })
-		  .catch(function (error) {
-			if (error.response) {
-				console.log(error.response.status);
-			  }
-		  });
-	  return data;
+		return await axios.post('http://hslinux:38383/api/v1/auth', {
+			uid: uid,
+			password: password
+		})
+			.then(function (response) {
+				return response.data.token;
 
+			})
+			.catch(function (error) {
+				throw new InvalidCredentialException();
+			});
+	},
+
+
+	validated(uid: string , password: string) {
+
+		try {
+			const zUid = z.string().min(1);
+			const zPassword = z.string().min(1);
+
+			zUid.parse(uid)
+			zPassword.parse(password)
+		}
+		catch (e) {
+			throw new UnprocessableEntityException(String(e));
+
+		}
 	}
 
 }
