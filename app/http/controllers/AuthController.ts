@@ -1,6 +1,6 @@
-import { NextFunction, Request, Response } from "express";
+import e, { NextFunction, Request, Response } from "express";
 import { AuthService } from "../../services/AuthService";
-import axios, { Axios } from "axios";
+import axios from "axios";
 import NotFoundException from "../../exceptions/NotFoundException";
 
 
@@ -17,19 +17,16 @@ export const AuthController = {
     
  async login(req: Request, res: Response, next: NextFunction) {
 
-    try {
-        let uid = req.body.uid
-        if (!uid)
-            uid = req.body.uid
-        if (!req.body.password)
-            throw new NotFoundException
+    axios.post("http://hslinux:38383/api/v1/auth", {
+			uid: req.body.uid,
+			password: req.body.password
+		  }).then((response) => {res.send(response.data.token)})
 
-        const token = await AuthService.validateLogin(uid, req.body.password)
-    }
-    catch (e) {
-        return next(e)
-    }
-        
-    },
+    .catch(function (error) {
+            res.send(error)
+    })
 
+
+
+}
 }

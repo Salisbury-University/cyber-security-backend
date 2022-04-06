@@ -20,14 +20,15 @@ export const AuthService = {
 	},
 
     async validateLogin(uid: string, password) {
+
 		
-	   var data
+	    var data
 		await axios.post('hslinux:38383/api/v1/auth', {
-			uid: uid,
-			password: password
+		uid: uid,
+		password: password
 		  })
 		  .then(function (response) {
-			data = console.log(response.data);
+		data = console.log(response.data);
 			
 		  })
 		  .catch(function (error) {
@@ -35,8 +36,7 @@ export const AuthService = {
 				console.log(error.response.status);
 			  }
 		  });
-	 	
-		  return data;
+	  return data;
 
 	}
 
