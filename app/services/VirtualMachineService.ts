@@ -5,7 +5,7 @@ import NotFoundException from "../exceptions/NotFound";
 const prisma = new PrismaClient();
 
 export const VirtualMachineService = {
-  async checkPermission(id: string, user: JSON): Promise<VM> {
+  async checkPermission(id: string, user: string): Promise<VM> {
     const VM = await prisma.vM.findFirst({
       where: {
         vm: id,
@@ -18,12 +18,12 @@ export const VirtualMachineService = {
     // User permission
     // Note: Admin cannot be added yet until
     // Jwt code returns group/admin
-    if (VM.user != user[0].uid) throw new UnauthorizedException();
+    if (VM.user != user) throw new UnauthorizedException();
 
     return VM;
   },
 
-  async getVM(id: string, user: JSON): Promise<VM> {
+  async getVM(id: string, user: string): Promise<VM> {
     try {
       const VM = await this.checkPermission(id, user);
       return VM;
