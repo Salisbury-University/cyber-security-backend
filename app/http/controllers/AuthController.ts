@@ -3,31 +3,19 @@ import { AuthService } from "../../services/AuthService";
 
 
 export const AuthController = {
-
 	/**
-		 * Handles the default request on /
-		 * 
-		 * @param req {Request} Express request object
-		 * @param res {Response} Express response object
-		 * @param next {NextFunction} Express NextFunction (used for middleware)
-		 */
-
-
+	 * Handles the login request
+	 * 
+	 * @param req {Request} Express request object
+	 * @param res {Response} Express response object
+	 * @param next {NextFunction} Express NextFunction (used for middleware)
+	 */
 	 async login(req: Request, res: Response, next: NextFunction) {
-
 		try {
-			AuthService.validated(req.body.uid, req.body.password)
 			const dat = await AuthService.validateLogin(req.body.uid, req.body.password)
-			
 			res.send(dat)
 		} catch (error) {
 			return next(error);
 		}
-
-
-
 	},
-
-
-
 }
