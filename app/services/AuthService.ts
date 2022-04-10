@@ -25,7 +25,7 @@ export const AuthService = {
 	 * @param password password
 	 * @returns token or throws an exception
 	 */
-	async validateLogin(uid: string, password: string) {
+	async validateLogin(uid: string, password: string):Promise<String> {
 		return await axios.post('http://hslinux:38383/api/v1/auth', {
 			uid: uid,
 			password: password

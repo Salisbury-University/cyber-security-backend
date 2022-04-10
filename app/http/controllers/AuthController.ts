@@ -12,7 +12,7 @@ export const AuthController = {
 	 */
 	 async login(req: Request, res: Response, next: NextFunction) {
 		try {
-			const dat = await AuthService.validateLogin(req.body.uid, req.body.password)
+			const dat = await AuthService.validateLogin(req.body.username, req.body.password)
 			res.send(dat)
 		} catch (error) {
 			return next(error);

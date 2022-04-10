@@ -17,7 +17,6 @@ const validate = (schema: AnyZodObject) =>
 				query: req.query,
 				params: req.params
 			});
-
 			return next();
 		}
 		catch (e) {
