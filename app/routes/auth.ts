@@ -6,12 +6,11 @@ const router = express.Router();
 
 //ValidationMiddleware
 import validate from '../http/middleware/ValidationMiddleware';
-import schema from '../schema/Auth';
+import loginSchema from '../schema/AuthLoginPost';
 
-router.use(validate(schema));
 
-router.post('/login', AuthController.login);
+
+router.post('/login', validate(loginSchema), AuthController.login);
 router.get('/', IndexController.index);
-
 
 export default router;

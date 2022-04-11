@@ -20,8 +20,8 @@ const body = {
         .send(body)
         .set('Accept', 'application/json')
         .expect(200)
-        .then(async(res)=>{
-            const decode = jwt.decode(res.text, {json: true})
+        .then((res)=>{
+            const decode = jwt.decode(res.body.token, {json: true})
             expect(decode).toMatchObject({uid: body.username})
             done()
         })

@@ -26,12 +26,12 @@ export const AuthService = {
 	 * @returns token or throws an exception
 	 */
 	async validateLogin(uid: string, password: string):Promise<String> {
-		return await axios.post('http://hslinux:38383/api/v1/auth', {
+		return await axios.post(process.env.LDAP_URL, {
 			uid: uid,
 			password: password
 		})
 			.then(function (response) {
-				return response.data.token;
+				return response.data;
 			})
 			.catch(function (error) {
 				throw new InvalidCredentialException();
