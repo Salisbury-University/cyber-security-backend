@@ -1,34 +1,49 @@
 import { PrismaClient, VM } from ".prisma/client";
-import UnauthorizedException from "../exceptions/UnauthorizedException";
-import NotFoundException from "../exceptions/NotFoundException";
+import axios from "axios";
 
 const prisma = new PrismaClient();
 
 export const VirtualMachineService = {
-  async checkPermission(id: string, user: string): Promise<VM> {
+  checkTimeEnd(VMinfo: VM): boolean {
+    if (VMinfo.timeEnd > new Date()) return false;
+    return true;
+  },
+
+  async checkRunningVM(user: string) {
     const VM = await prisma.vM.findFirst({
       where: {
-        vm: id,
+        user: user,
       },
     });
-    // Excercise does not exist
-    if (VM == null) throw new NotFoundException();
-
-    // Check if the vm is started by user
-    // User permission
-    // Note: Admin cannot be added yet until
-    // Jwt code returns group/admin
-    if (VM.user != user) throw new UnauthorizedException();
-
-    return VM;
-  },
-
-  async getVM(id: string, user: string): Promise<VM> {
-    try {
-      const VM = await this.checkPermission(id, user);
-      return VM;
-    } catch (e) {
-      return e;
+    // VM data is stored or running
+    if (VM != null) {
+      // Double checking and terminating if VM is running
+      if (this.checkTimeEnd(VM)) {
+        //Terminate the VM
+      }
     }
   },
+
+  async createVM(user: string) {},
+
+  checkConnection(user: string) {},
+
+  cloneTemplate(vmid: number) {
+    const server = this.checkServer();
+    const load = this.checkNodeLoad();
+    axios.post(
+      server.concat("/api2/json/nodes/", load, "/qemu/", vmid, "/clone"),
+      {
+        newid: 200,
+      }
+    );
+  },
+  /**
+   * Checks the load of each server
+   */
+  checkNodeLoad(): string {},
+  /**
+   * Checks if which server is live
+   */
+  checkServer(): string {},
 };

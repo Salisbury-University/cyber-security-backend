@@ -26,7 +26,7 @@ export const AuthService = {
    * @return {JSON} Decoded jsonwebtoken
    * @throws {JwtMalformedException} Throws error when token is malformed or empty
    */
-  decodeToken(token: String): JSON {
+  decodeToken(token: String): any {
     const PAYLOAD: JSON = jwt.decode(token, { json: true });
     if (PAYLOAD === null) {
       throw new JwtMalformedException();
