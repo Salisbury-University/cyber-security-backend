@@ -41,6 +41,6 @@ export const VirtualMachineService = {
    * Checks the load of each server
    */
   checkNodeLoad(): string {
-    axios.post();
+    axios.post(process.env.NODE.concat("/api2/json/nodes/")).then((res) => {});
   },
 };
