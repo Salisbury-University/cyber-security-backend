@@ -1,5 +1,6 @@
 import axios from 'axios';
 import InvalidCredentialException from '../exceptions/InvalidCredentials';
+import { config } from '../../config'
 
 /**
  * An example of an authorization service to validate authorization tokens, or attempt sign ins.
@@ -26,7 +27,7 @@ export const AuthService = {
 	 * @returns token or throws an exception
 	 */
 	async validateLogin(uid: string, password: string):Promise<String> {
-		return await axios.post(process.env.LDAP_URL, {
+		return await axios.post(config.app.ldap, {
 			uid: uid,
 			password: password
 		})
