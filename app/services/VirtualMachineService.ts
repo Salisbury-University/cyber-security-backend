@@ -29,7 +29,6 @@ export const VirtualMachineService = {
   checkConnection(user: string) {},
 
   cloneTemplate(vmid: number) {
-    const server = this.checkServer();
     const load = this.checkNodeLoad();
     axios.post(
       server.concat("/api2/json/nodes/", load, "/qemu/", vmid, "/clone"),
@@ -41,9 +40,7 @@ export const VirtualMachineService = {
   /**
    * Checks the load of each server
    */
-  checkNodeLoad(): string {},
-  /**
-   * Checks if which server is live
-   */
-  checkServer(): string {},
+  checkNodeLoad(): string {
+    axios.post();
+  },
 };
