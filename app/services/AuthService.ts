@@ -26,7 +26,7 @@ export const AuthService = {
 	 * @param password password
 	 * @returns token or throws an exception
 	 */
-	async validateLogin(uid: string, password: string):Promise<String> {
+	async validateLogin(uid: string, password: string): Promise<String> {
 		return await axios.post(config.app.ldap, {
 			uid: uid,
 			password: password

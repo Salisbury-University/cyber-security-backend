@@ -36,7 +36,6 @@ test('/LoginFailed', async({expect}, done:Function)=>{
         .send({
             username: "aaa",
             password: "sgs"
-
         })
         .set('Accept', 'application/json')
         .expect(422,done)
