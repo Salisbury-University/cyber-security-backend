@@ -1,5 +1,6 @@
 import { PrismaClient, VM } from ".prisma/client";
 import axios from "axios";
+import { config } from "../../config";
 
 const prisma = new PrismaClient();
 
@@ -34,13 +35,12 @@ export const VirtualMachineService = {
 
   async createVM(user: string) {},
 
-  checkConnection(user: string) {},
-
   cloneTemplate(vmid: string) {
     const load = this.selectNodeLoad();
+    //Currently the newid is set but it will be changed
     const newid = "1000";
     axios.post(
-      process.env.NODE.concat(
+      config.app.node.concat(
         "/api2/json/nodes/",
         load,
         "/qemu/",
@@ -55,7 +55,7 @@ export const VirtualMachineService = {
    */
   selectNodeLoad(): any {
     return axios
-      .post(process.env.NODE.concat("/api2/json/nodes"))
+      .post(config.app.node.concat("/api2/json/nodes"))
       .then((res) => {
         let node: any = { node: res.data[0].node, mem: res.data[0].mem };
         // If node is greater than 1
