@@ -42,8 +42,8 @@ export const VirtualMachineService = {
 
   async createVM(user: string, vmid: string) {
     try {
-      checkRunningVM(user);
-      cloneTemplate(vmid);
+      this.checkRunningVM(user);
+      this.cloneTemplate(vmid);
     } catch (e) {
       return e;
     }
