@@ -4,6 +4,7 @@ import { config } from '../../config'
 import jwt from "jsonwebtoken";
 import JwtMalformedException from "../exceptions/JwtMalformedException";
 
+
 /**
  * All of the functions regarding authorization
  */
@@ -28,7 +29,8 @@ export const AuthService = {
 				throw new InvalidCredentialException();
 			});
 	},
-}
+
+
   /**
    * Checks if the token starts with Bearer(JWT token) and a spcae afterward
    *
@@ -43,6 +45,8 @@ export const AuthService = {
     }
     return false;
   },
+
+
   /**
    * Decode the Jsonwebtoken
    *
@@ -50,7 +54,7 @@ export const AuthService = {
    * @return {JSON} Decoded jsonwebtoken
    * @throws {JwtMalformedException} Throws error when token is malformed or empty
    */
-  decodeToken(token: String): JSON {
+  decodeToken(token: String): any {
     const PAYLOAD: JSON = jwt.decode(token, { json: true });
     if (PAYLOAD === null) {
       throw new JwtMalformedException();

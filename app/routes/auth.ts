@@ -9,7 +9,6 @@ import validate from '../http/middleware/ValidationMiddleware';
 import loginSchema from '../schema/AuthLoginPost';
 
 
-
 router.post('/login', validate(loginSchema), AuthController.login);
 router.get('/', IndexController.index);
 

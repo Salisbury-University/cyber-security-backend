@@ -7,3 +7,9 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Exercise {
+  ID Int @id @default(autoincrement())
+  exercise_ID String
+  status String
+  user String 
+}
