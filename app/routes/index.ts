@@ -23,5 +23,8 @@ router.post('/', validate(schema), IndexController.index);
 import authRouter from './auth';
 router.use('/auth', authRouter);
 
+import exerciseRouter from './exercise';
+router.use('/api/v1/exercise', exerciseRouter);
+
 // Export the router
 export default router;
