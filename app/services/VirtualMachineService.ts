@@ -14,6 +14,7 @@ export const VirtualMachineService = {
   checkTimeEnd(VMinfo: VM): boolean {
     if (VMinfo.timeEnd < new Date()) return false;
     return true;
+
   },
 
   /**
