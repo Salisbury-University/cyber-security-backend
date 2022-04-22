@@ -116,4 +116,14 @@ export const VirtualMachineService = {
       return node.node;
     });
   },
+
+  getNamesOfNodes(): String[] {
+    let nodes = [];
+    axios.get(config.app.node.concat("/api2/json/nodes")).then((res) => {
+      for(let i = 0; i < res.data.length; i++){
+        nodes.push(res.data[i].node);
+      }
+    })
+    return nodes;
+  },
 };
