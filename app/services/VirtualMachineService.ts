@@ -96,8 +96,17 @@ export const VirtualMachineService = {
         })
     );
   },
+
   /**
-   * Checks the load by memory
+   * Gets all the node list from the current host
+   * */
+  getListNodes(): any {
+    return axios.get(config.app.node.concat("/api2/json/nodes")).then((res) => {
+      return res.data;
+    });
+  },
+  /**
+   * Checks the load by
    */
   selectNodeLoad(): any {
     return axios.get(config.app.node.concat("/api2/json/nodes")).then((res) => {
@@ -114,5 +123,47 @@ export const VirtualMachineService = {
 
       return node.node;
     });
+  },
+
+  checkLeastRunningVM() {
+    const nodes = this.getListNodes();
+    let nodeName: string[] = [];
+    let runningVM: number[] = [];
+    let leastVM: JSON = { number: 0, Node: "" }[0];
+    let sameRunning: boolean = true;
+
+    // Gets all the node names in the cluster
+    for (let i = 0; i < nodes[0].length; i++) {
+      nodeName[i] = nodes[0][i].node.name;
+      runningVM[i] = 0;
+    }
+
+    // Get the number of running current running
+    for (let i = 0; i < nodeName.length; i++) {
+      axios
+        .get(config.app.node.concat("/api2/json/nodes/", nodeName[i], "/qemu"))
+        .then((res) => {
+          // Count all the running virtual machine currently running
+          for (let j = 0; j < res.data.length; j++) {
+            if (res.data[j].status == "running") {
+              runningVM[i] = runningVM[i] + 1;
+            }
+          }
+        });
+    }
+
+    leastVM[0]["number"] = 0;
+    leastVM[0]["Node"] = nodeName[leastVM[0]["number"]];
+    // Check the node with least running VM
+    for (let i = 1; i < runningVM.length; i++) {
+      if (runningVM[i] < runningVM[leastVM[0]["number"]]) {
+      }
+    }
+  },
+
+  checkDiskStorage(): any {
+    return axios
+      .get(config.app.node.concat("/api2/json/nodes"))
+      .then((res) => {});
   },
 };
