@@ -1,5 +1,6 @@
 import { PrismaClient, VM } from ".prisma/client";
 import axios from "axios";
+import marked from "marked";
 import { config } from "../../config";
 import InsufficientStorageException from "../exceptions/InsufficientStorageException";
 
@@ -350,5 +351,31 @@ export const VirtualMachineService = {
       }
       return newId;
     }
+  },
+
+  getMetaData(vmid: string): string {
+    const lexer = marked.lexer("../exercises/", vmid, ".md");
+    let content = "";
+    for (let i = 0; i < lexer.length; i++) {
+      if (lexer[i].type == "hr") {
+        content = lexer[i + 1].raw;
+      }
+    }
+    const key = [];
+    const value = [];
+    //Split by enter and get rid of last
+    const eachRow = content.split("\n");
+    for (let i = 0; i < eachRow.length; i++) {
+      // Split between key and value
+      const eachCol = eachRow[i].split(":");
+      key.push(eachCol[0]);
+      value.push(eachCol[1]);
+    }
+    let returnString = "metadata:[{";
+    // Concat the key and value back to be encoded as json in future
+    for (let i = 0; i < key.length; i++) {
+      returnString.concat('"', key[i], '": "', value[i], '"');
+    }
+    return returnString;
   },
 };
