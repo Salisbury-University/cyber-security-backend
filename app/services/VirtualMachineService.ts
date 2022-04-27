@@ -1,6 +1,7 @@
 import { PrismaClient, VM } from ".prisma/client";
 import axios from "axios";
 import { config } from "../../config";
+import InsufficientStorageException from "../exceptions/InsufficientStorageException";
 
 const prisma = new PrismaClient();
 
@@ -33,27 +34,117 @@ export const VirtualMachineService = {
     if (VM != null) {
       // Double checking and terminating if VM is running
       if (this.checkTimeEnd(VM)) {
-        //Terminate the VM
+        this.checkVMExist(VM["vmid"], VM["node"]);
       } else {
-        //Throw error
+        //Throw error saying already running
       }
     }
   },
 
-  async createVM(user: string, vmid: string) {
+  /**
+   * Check if the VM exist in the server
+   *
+   * @param vmid vmid of vm
+   * @param node node where the vm is stored
+   * @returns {boolean} to see if it exist and running
+   */
+  checkVMExist(vmid: string, node: string): void {
+    axios
+      .get(
+        config.app.node.concat(
+          "/api2/json/",
+          node,
+          "/qemu/",
+          vmid,
+          "/status/current"
+        )
+      )
+      .then((res) => {
+        if (res.data.status == "") {
+          return;
+        }
+        if (res.data.status == "running") {
+          this.stopVM(vmid, node);
+        }
+        this.unlinkVM(vmid, node);
+      });
+  },
+
+  /**
+   * Force stop the running VM
+   *
+   * @param vmid vmid of VM
+   * @param node node where the vm is stored
+   */
+  stopVM(vmid: string, node: string): void {
+    axios.post(
+      config.app.node.concat(
+        "/api2/json/",
+        node,
+        "/qemu/",
+        vmid,
+        "/status/stop"
+      )
+    );
+  },
+
+  /**
+   * Delete the VM
+   *
+   * @param vmid vmid of VM
+   * @param node node where the vm is stored
+   */
+  unlinkVM(vmid: string, node: string): void {
+    axios.put(
+      config.app.node.concat(
+        "/api2/json/",
+        node,
+        "/qemu/",
+        vmid,
+        "/unlink?force=true"
+      )
+    );
+  },
+
+  /**
+   * Creates the VM
+   *
+   * @param {string} user current user
+   * @param {string} vmid vmid of vm
+   * @return error from function
+   */
+  async createVM(user: string, vmid: string): Promise<JSON> {
     try {
-      this.checkRunningVM(user);
-      this.cloneTemplate(vmid);
+      const load = this.selectNodeLoad(vmid);
+      const newNode = load[0];
+      const newId = load[1];
+      this.cloneTemplate(vmid, newId);
+      this.migrateTemplate(newId, newNode);
+      this.startVM(newId, newNode);
+      // Wait for 10 sec for guest agent IP to generate
+      await new Promise((r) => setTimeout(r, 10000));
     } catch (e) {
       return e;
     }
+  },
+
+  startVM(vmid: string, node: string) {
+    axios.post(
+      config.app.node.concat(
+        "/api2/json/",
+        node,
+        "/qemu/",
+        vmid,
+        "/status/start"
+      )
+    );
   },
 
   /**
    * Migrates virtual machine to newNode
    *
    * @param {string} newId Id of newly created virtual machine
-   * @throw {} Error during migration
+   * @throw Error during migration
    * */
   migrateTemplate(newId: string, newNode: string): void {
     axios
@@ -77,20 +168,19 @@ export const VirtualMachineService = {
    *
    * @param {string} vmid Virtual Machine ID
    * */
-  cloneTemplate(vmid: string): void {
-    const load = this.selectNodeLoad();
-    //Currently the newid is set but it will be changed
-    const newId = "1000";
-    axios.post(
-      config.app.node.concat(
-        "/api2/json/nodes/",
-        config.app.hostname,
-        "/qemu/",
-        vmid,
-        "/clone?newid=",
-        newId
+  cloneTemplate(vmid: string, newId: string): void {
+    axios
+      .post(
+        config.app.node.concat(
+          "/api2/json/nodes/",
+          config.app.hostname,
+          "/qemu/",
+          vmid,
+          "/clone?newid=",
+          newId
+        )
       )
-    );
+      .catch((error) => {});
   },
 
   /**
@@ -99,12 +189,13 @@ export const VirtualMachineService = {
    * @param {string} vmid number of vmid to clone
    * @return {string} return the node that the template should be cloned to
    */
-  selectNodeLoad(vmid: string): string {
+  selectNodeLoad(vmid: string): string[] {
     // Gets the list of node (includes node name / cpu usage / disk avaliable)
     const node: string[] = [];
     const disk: number[] = [];
     const cpu: number[] = [];
     const vm: number[] = [];
+    const vmId: number[] = [];
 
     axios.post(config.app.node.concat("/api2/json/nodes")).then((res) => {
       for (let i = 0; i < res.data.length; i++) {
@@ -113,7 +204,7 @@ export const VirtualMachineService = {
         disk.push(res.data[i].maxdisk - res.data[i].disk);
         cpu.push(res.data[i].cpu);
 
-        // Get vm running per node (maybe make this into function passing node info)
+        // Get vm running per node
         axios
           .post(
             config.app.node.concat(
@@ -128,10 +219,16 @@ export const VirtualMachineService = {
               if (res.data[i].status === "running") {
                 vm[i]++;
               }
+              if (res.data[i].vmid >= 1000) {
+                vmId.push(res.data[i].vmid);
+              }
             }
           });
       }
     });
+
+    // Get the new id
+    const newId = this.checkNewVMID(vmId);
 
     // Get the size of template
     const size = this.getSizeTemplate(vmid);
@@ -149,9 +246,10 @@ export const VirtualMachineService = {
 
     // If no storage is free, send error
     if (disk.length < 1) {
+      throw new InsufficientStorageException();
     }
 
-    // Check least running vm
+    // Check least running vm or if all are the same
     let sameVM = true;
     let index = 0;
     for (let i = 1; i < vm.length; i++) {
@@ -166,6 +264,7 @@ export const VirtualMachineService = {
         }
       }
     }
+
     // If all the same number of running vm check by cpu usage
     if (sameVM) {
       for (let i = 1; cpu.length; i++) {
@@ -175,7 +274,8 @@ export const VirtualMachineService = {
       }
     }
 
-    return node[index];
+    // Return the name of the least node
+    return [node[index], String(newId)];
   },
 
   /**
@@ -196,7 +296,54 @@ export const VirtualMachineService = {
         )
       )
       .then((res) => {
-        for (let i = 0; i < res.data.length; i++) {}
+        for (var key in res.data) {
+          //Checks for ide only goes 0-3
+          if (key.includes("ide")) {
+            const split = res.data[key].split("size=");
+            if (split.length > 2) {
+              continue;
+            } else {
+              // Last letter is G (gigabyte): hit the jackpot
+              const lastLetter = split[1].length - 1;
+              if (split[1][lastLetter] == "G") {
+                const stringSize = split[1].substring(0, lastLetter);
+                return Number(stringSize) * Math.pow(2, 30) * 8;
+              }
+            }
+          }
+          //Check scsi key only goes 0-30
+          if (key.includes("scsi")) {
+            const split = res.data[key].split("size=");
+            if (split.length > 2) {
+              continue;
+            } else {
+              // Last letter is G (gigabyte): hit the jackpot
+              const lastLetter = split[1].length - 1;
+              if (split[1][lastLetter] == "G") {
+                const stringSize = split[1].substring(0, lastLetter);
+                return Number(stringSize) * Math.pow(2, 30) * 8;
+              }
+            }
+          }
+        }
       });
+  },
+
+  /**
+   * checks the next lowest number to use for newId
+   *
+   * @param {number []} vmid array storing vmid
+   * @return {number} newId to use for cloning
+   */
+  checkNewVMID(vmid: number[]): number {
+    let newId = 1000;
+    vmid.sort();
+    for (let i = 0; i < vmid.length; i++) {
+      if (newId == vmid[i]) {
+        newId++;
+        continue;
+      }
+      return newId;
+    }
   },
 };
