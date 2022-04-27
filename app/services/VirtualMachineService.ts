@@ -22,7 +22,7 @@ export const VirtualMachineService = {
    * Terminates if time ended
    *
    * @param {string} user user currently logged in
-   * @throw {} Error on already existing VM
+   * @throw Error on already existing VM
    * */
   async checkRunningVM(user: string): Promise<void> {
     const VM = await prisma.vM.findFirst({
@@ -44,9 +44,8 @@ export const VirtualMachineService = {
   /**
    * Check if the VM exist in the server
    *
-   * @param vmid vmid of vm
-   * @param node node where the vm is stored
-   * @returns {boolean} to see if it exist and running
+   * @param {string} vmid vmid of vm
+   * @param {string} node node where the vm is stored
    */
   checkVMExist(vmid: string, node: string): void {
     axios
@@ -73,8 +72,8 @@ export const VirtualMachineService = {
   /**
    * Force stop the running VM
    *
-   * @param vmid vmid of VM
-   * @param node node where the vm is stored
+   * @param {string} vmid vmid of VM
+   * @param {string} node node where the vm is stored
    */
   stopVM(vmid: string, node: string): void {
     axios.post(
@@ -91,8 +90,8 @@ export const VirtualMachineService = {
   /**
    * Delete the VM
    *
-   * @param vmid vmid of VM
-   * @param node node where the vm is stored
+   * @param {string} vmid vmid of VM
+   * @param {string} node node where the vm is stored
    */
   unlinkVM(vmid: string, node: string): void {
     axios.put(
@@ -128,6 +127,12 @@ export const VirtualMachineService = {
     }
   },
 
+  /**
+   * Starts the virtual machine
+   *
+   * @param {string} vmid id of vm
+   * @param {string} node node where vm is located at
+   */
   startVM(vmid: string, node: string) {
     axios.post(
       config.app.node.concat(
