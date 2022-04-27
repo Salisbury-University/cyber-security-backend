@@ -121,8 +121,8 @@ export const VirtualMachineService = {
       this.cloneTemplate(vmid, newId);
       this.migrateTemplate(newId, newNode);
       this.startVM(newId, newNode);
-      // Wait for 10 sec for guest agent IP to generate
-      await new Promise((r) => setTimeout(r, 10000));
+      // Wait for 30 sec OS to boot for guest agent to run
+      await new Promise((r) => setTimeout(r, 30000));
     } catch (e) {
       return e;
     }
