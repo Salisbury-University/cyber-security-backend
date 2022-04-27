@@ -176,18 +176,26 @@ export const VirtualMachineService = {
    * @param {string} vmid Virtual Machine ID
    * */
   cloneTemplate(vmid: string, newId: string): void {
+    console.log(config.app.token);
     axios
       .post(
         config.app.node.concat(
           "/api2/json/nodes/",
-          config.app.hostname,
+          config.app.nodename,
           "/qemu/",
           vmid,
           "/clone?newid=",
           newId
-        )
+        ),
+        {
+          headers: {
+            Authorization: config.app.token,
+          },
+        }
       )
-      .catch((error) => {});
+      .catch((error) => {
+        console.log(error);
+      });
   },
 
   /**
@@ -362,11 +370,13 @@ export const VirtualMachineService = {
    */
   getMetaData(vmid: string): string {
     const fileLocation = "exercises/102.md";
-    const lexer = marked.lexer("---adsfadf\nalksdjfa\n");
+    const fileContent = fs.readFileSync(fileLocation, "utf8");
+    const lexer = marked.lexer(fileContent);
     let content = "";
     for (let i = 0; i < lexer.length; i++) {
       if (lexer[i].type == "hr") {
         content = lexer[i + 1].raw;
+        break;
       }
     }
     const key = [];
@@ -379,12 +389,15 @@ export const VirtualMachineService = {
       key.push(eachCol[0]);
       value.push(eachCol[1]);
     }
+
     let returnString = "metadata:[{";
     // Concat the key and value back to be encoded as json in future
-    for (let i = 0; i < key.length; i++) {
-      returnString.concat('"', key[i], '": "', value[i], '"');
+    for (let i = 0; i < key.length - 1; i++) {
+      returnString = returnString.concat('"', key[i], '": ', value[i], ",\n");
     }
-    returnString.concat("}]");
+    returnString = returnString.substring(0, returnString.length - 2);
+    returnString = returnString.concat("}]");
+    returnString = JSON.stringify(returnString);
     return returnString;
   },
 };
