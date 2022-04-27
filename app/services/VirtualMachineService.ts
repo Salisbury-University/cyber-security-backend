@@ -2,6 +2,7 @@ import { PrismaClient, VM } from ".prisma/client";
 import axios from "axios";
 import { marked } from "marked";
 import fs from "fs";
+import https from "https";
 import { config } from "../../config";
 import InsufficientStorageException from "../exceptions/InsufficientStorageException";
 
@@ -191,6 +192,9 @@ export const VirtualMachineService = {
           headers: {
             Authorization: config.app.token,
           },
+          httpsAgent: new https.Agent({
+            rejectUnauthorized: false,
+          }),
         }
       )
       .catch((error) => {

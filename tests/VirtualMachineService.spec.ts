@@ -9,7 +9,6 @@ test.group("Virtual Machine Service", () => {
     // console.log(content);
     // const string = marked.lexer(content);
     // console.log(string);
-    VirtualMachineService.getMetaData("102");
-    // VirtualMachineService.cloneTemplate("102", "1000");
+    VirtualMachineService.cloneTemplate("102", "1000");
   });
 });
