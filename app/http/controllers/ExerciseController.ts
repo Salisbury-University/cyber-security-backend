@@ -3,6 +3,6 @@ import { VirtualMachineService } from "../../services/VirtualMachineService";
 
 export const ExcerciseController = {
   async requestVM(req: Request, res: Response, next: NextFunction) {
-    VirtualMachineService.checkRunningVM(req.user.uid);
+    VirtualMachineService.checkRunningVM(req.user[0].uid);
   },
 };

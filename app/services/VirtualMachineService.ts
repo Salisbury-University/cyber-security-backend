@@ -82,98 +82,121 @@ export const VirtualMachineService = {
     //Currently the newid is set but it will be changed
     const newId = "1000";
     axios.post(
-      config.app.node
-        .concat(
-          "/api2/json/nodes/",
-          config.app.hostname,
-          "/qemu/",
-          vmid,
-          "/clone?newid=",
-          newId
-        )
-        .catch((error) => {
-          // Fail to clone
-        })
+      config.app.node.concat(
+        "/api2/json/nodes/",
+        config.app.hostname,
+        "/qemu/",
+        vmid,
+        "/clone?newid=",
+        newId
+      )
     );
   },
 
   /**
-   * Gets all the node list from the current host
-   * */
-  getListNodes(): any {
-    return axios.get(config.app.node.concat("/api2/json/nodes")).then((res) => {
-      return res.data;
-    });
-  },
-  /**
-   * Checks the load by
+   * Checks the load by VM running and
+   *
+   * @param {string} vmid number of vmid to clone
+   * @return {string} return the node that the template should be cloned to
    */
-  selectNodeLoad(): any {
-    return axios.get(config.app.node.concat("/api2/json/nodes")).then((res) => {
-      let node: any = { node: res.data[0].node, mem: res.data[0].mem };
-      // If node is greater than 1
-      if (res.data.length > 1) {
-        for (let i = 1; i < res.data.length; i++) {
-          if (node.mem > res.data[i].mem) {
-            node.node = res.data[i].node;
-            node.mem = res.data[i].mem;
-          }
+  selectNodeLoad(vmid: string): string {
+    // Gets the list of node (includes node name / cpu usage / disk avaliable)
+    const node: string[] = [];
+    const disk: number[] = [];
+    const cpu: number[] = [];
+    const vm: number[] = [];
+
+    axios.post(config.app.node.concat("/api2/json/nodes")).then((res) => {
+      for (let i = 0; i < res.data.length; i++) {
+        node.push(res.data[i].node);
+        // Calculate disk avaliable and push to array
+        disk.push(res.data[i].maxdisk - res.data[i].disk);
+        cpu.push(res.data[i].cpu);
+
+        // Get vm running per node (maybe make this into function passing node info)
+        axios
+          .post(
+            config.app.node.concat(
+              "/api2/json/nodes/",
+              res.data[i].node,
+              "/qemu"
+            )
+          )
+          .then((res) => {
+            vm.push(0);
+            for (let j = 0; j < res.data.length; j++) {
+              if (res.data[i].status === "running") {
+                vm[i]++;
+              }
+            }
+          });
+      }
+    });
+
+    // Get the size of template
+    const size = this.getSizeTemplate(vmid);
+
+    // Check each node disk storage size to see if template can be clones
+    // Otherwise remove it from the array
+    for (let i = 0; i < disk.length; i++) {
+      if (size > disk[i]) {
+        disk.splice(i, 1);
+        cpu.splice(i, 1);
+        vm.splice(i, 1);
+        node.splice(i, 1);
+      }
+    }
+
+    // If no storage is free, send error
+    if (disk.length < 1) {
+    }
+
+    // Check least running vm
+    let sameVM = true;
+    let index = 0;
+    for (let i = 1; i < vm.length; i++) {
+      if (sameVM) {
+        if (vm[index] != vm[i]) {
+          sameVM = false;
         }
       }
-
-      return node.node;
-    });
-  },
-
-  checkLeastRunningVM() {
-    const nodes = this.getListNodes();
-    let nodeName: string[] = [];
-    let runningVM: number[] = [];
-    let leastVM: JSON = { number: 0, Node: "" }[0];
-    let sameRunning: boolean = true;
-
-    // Gets all the node names in the cluster
-    for (let i = 0; i < nodes[0].length; i++) {
-      nodeName[i] = nodes[0][i].node.name;
-      runningVM[i] = 0;
-    }
-
-    // Get the number of running current running
-    for (let i = 0; i < nodeName.length; i++) {
-      axios
-        .get(config.app.node.concat("/api2/json/nodes/", nodeName[i], "/qemu"))
-        .then((res) => {
-          // Count all the running virtual machine currently running
-          for (let j = 0; j < res.data.length; j++) {
-            if (res.data[j].status == "running") {
-              runningVM[i] = runningVM[i] + 1;
-            }
-          }
-        });
-    }
-
-    leastVM[0]["number"] = 0;
-    leastVM[0]["Node"] = nodeName[leastVM[0]["number"]];
-    // Check the node with least running VM
-    for (let i = 1; i < runningVM.length; i++) {
-      if (runningVM[i] < runningVM[leastVM[0]["number"]]) {
+      if (sameVM == false) {
+        if (vm[index] > vm[i]) {
+          index = i;
+        }
       }
     }
+    // If all the same number of running vm check by cpu usage
+    if (sameVM) {
+      for (let i = 1; cpu.length; i++) {
+        if (cpu[index] > cpu[i]) {
+          index = i;
+        }
+      }
+    }
+
+    return node[index];
   },
 
-  checkDiskStorage(): any {
+  /**
+   * Gets the disk size of template
+   *
+   * @param {string} vmid The vmid of template
+   * @return {any} size of the template
+   */
+  getSizeTemplate(vmid: string): any {
     return axios
-      .get(config.app.node.concat("/api2/json/nodes"))
-      .then((res) => {});
-  },
-
-  getNamesOfNodes(): String[] {
-    let nodes = [];
-    axios.get(config.app.node.concat("/api2/json/nodes")).then((res) => {
-      for (let i = 0; i < res.data.length; i++) {
-        nodes.push(res.data[i].node);
-      }
-    });
-    return nodes;
+      .post(
+        config.app.node.concat(
+          "/api2/json/nodes/",
+          config.app.node,
+          "/qemu/",
+          vmid,
+          "config"
+        )
+      )
+      .then((res) => {
+        for (let i = 0; i < res.data.length; i++) {}
+      });
   },
 };

@@ -7,7 +7,7 @@ export {};
 declare global {
   namespace Express {
     interface Request {
-      user?: any;
+      user?: JSON;
       VM: VM;
     }
   }
