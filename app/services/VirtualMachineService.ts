@@ -353,6 +353,12 @@ export const VirtualMachineService = {
     }
   },
 
+  /**
+   * Gets the front matter from the md file
+   *
+   * @param vmid id of vm
+   * @return JSON formated string
+   */
   getMetaData(vmid: string): string {
     const lexer = marked.lexer("../exercises/", vmid, ".md");
     let content = "";
@@ -376,6 +382,7 @@ export const VirtualMachineService = {
     for (let i = 0; i < key.length; i++) {
       returnString.concat('"', key[i], '": "', value[i], '"');
     }
+    returnString.concat("}]");
     return returnString;
   },
 };
