@@ -1,6 +1,7 @@
 import { PrismaClient, VM } from ".prisma/client";
 import axios from "axios";
-import marked from "marked";
+import { marked } from "marked";
+import fs from "fs";
 import { config } from "../../config";
 import InsufficientStorageException from "../exceptions/InsufficientStorageException";
 
@@ -360,7 +361,8 @@ export const VirtualMachineService = {
    * @return JSON formated string
    */
   getMetaData(vmid: string): string {
-    const lexer = marked.lexer("../exercises/", vmid, ".md");
+    const fileLocation = "exercises/102.md";
+    const lexer = marked.lexer("---adsfadf\nalksdjfa\n");
     let content = "";
     for (let i = 0; i < lexer.length; i++) {
       if (lexer[i].type == "hr") {
