@@ -393,8 +393,6 @@ export const VirtualMachineService = {
       const eachCol = eachRow[i].split(": ");
       metadata[eachCol[0]] = this.getDataType(eachCol[1]);
     }
-    console.log(metadata);
-
     return JSON.stringify(metadata);
   },
 
