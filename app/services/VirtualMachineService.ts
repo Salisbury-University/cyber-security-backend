@@ -372,7 +372,7 @@ export const VirtualMachineService = {
    * @param vmid id of vm
    * @return JSON formated string
    */
-  getMetaData(vmid: string): string {
+  getMetaData(vmid: string): Object {
     const fileLocation = "exercises/" + vmid + ".md";
     const fileContent = fs.readFileSync(fileLocation, "utf8");
     const lexer = marked.lexer(fileContent);
@@ -393,7 +393,7 @@ export const VirtualMachineService = {
       const eachCol = eachRow[i].split(": ");
       metadata[eachCol[0]] = this.getDataType(eachCol[1]);
     }
-    return JSON.stringify(metadata);
+    return metadata;
   },
 
   /**

@@ -5,7 +5,9 @@ import fs from "fs";
 
 test.group("Virtual Machine Service", () => {
   test("parsing", ({ expect }) => {
-    const string = VirtualMachineService.getMetaData("102");
-    console.log(JSON.parse(string).title);
+    const metadata = VirtualMachineService.getMetaData("102");
+    const obj = { id: 1234, metadata, cd: 123 };
+    console.log(metadata);
+    console.log(JSON.parse(JSON.stringify(obj)));
   });
 });
