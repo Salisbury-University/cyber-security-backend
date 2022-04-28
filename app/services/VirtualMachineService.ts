@@ -51,7 +51,7 @@ export const VirtualMachineService = {
    * @param {string} node node where the vm is stored
    */
   checkVMExist(vmid: string, node: string): void {
-    axios
+    this.createAxiosWithToken()
       .get(
         config.app.node.concat(
           "/api2/json/",
@@ -79,7 +79,7 @@ export const VirtualMachineService = {
    * @param {string} node node where the vm is stored
    */
   stopVM(vmid: string, node: string): void {
-    axios.post(
+    this.createAxiosWithToken().post(
       config.app.node.concat(
         "/api2/json/",
         node,
@@ -97,7 +97,7 @@ export const VirtualMachineService = {
    * @param {string} node node where the vm is stored
    */
   unlinkVM(vmid: string, node: string): void {
-    axios.put(
+    this.createAxiosWithToken().put(
       config.app.node.concat(
         "/api2/json/",
         node,
@@ -137,7 +137,7 @@ export const VirtualMachineService = {
    * @param {string} node node where vm is located at
    */
   startVM(vmid: string, node: string) {
-    axios.post(
+    this.createAxiosWithToken().post(
       config.app.node.concat(
         "/api2/json/",
         node,
@@ -155,7 +155,7 @@ export const VirtualMachineService = {
    * @throw Error during migration
    * */
   migrateTemplate(newId: string, newNode: string): void {
-    axios
+    this.createAxiosWithToken()
       .post(
         config.app.node.concat(
           "/api2/json/nodes",
@@ -177,8 +177,7 @@ export const VirtualMachineService = {
    * @param {string} vmid Virtual Machine ID
    * */
   cloneTemplate(vmid: string, newId: string): void {
-    console.log(config.app.token);
-    axios
+    this.createAxiosWithToken()
       .post(
         config.app.node.concat(
           "/api2/json/nodes/",
@@ -187,15 +186,7 @@ export const VirtualMachineService = {
           vmid,
           "/clone?newid=",
           newId
-        ),
-        {
-          headers: {
-            Authorization: config.app.token,
-          },
-          httpsAgent: new https.Agent({
-            rejectUnauthorized: false,
-          }),
-        }
+        )
       )
       .catch((error) => {
         console.log(error);
@@ -224,7 +215,7 @@ export const VirtualMachineService = {
         cpu.push(res.data[i].cpu);
 
         // Get vm running per node
-        axios
+        this.createAxiosWithToken()
           .post(
             config.app.node.concat(
               "/api2/json/nodes/",
@@ -304,7 +295,7 @@ export const VirtualMachineService = {
    * @return {any} size of the template
    */
   getSizeTemplate(vmid: string): any {
-    return axios
+    return this.createAxiosWithToken()
       .post(
         config.app.node.concat(
           "/api2/json/nodes/",
@@ -364,6 +355,17 @@ export const VirtualMachineService = {
       }
       return newId;
     }
+  },
+
+  /**
+   * Creates axios instance with token for ease of use
+   */
+  createAxiosWithToken(): any {
+    return axios.create({
+      headers: {
+        Authorization: config.app.token,
+      },
+    });
   },
 
   /**
