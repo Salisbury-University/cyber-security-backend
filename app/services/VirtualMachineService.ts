@@ -373,35 +373,58 @@ export const VirtualMachineService = {
    * @return JSON formated string
    */
   getMetaData(vmid: string): string {
-    const fileLocation = "exercises/102.md";
+    const fileLocation = "exercises/" + vmid + ".md";
     const fileContent = fs.readFileSync(fileLocation, "utf8");
     const lexer = marked.lexer(fileContent);
     let content = "";
     for (let i = 0; i < lexer.length; i++) {
       if (lexer[i].type == "hr") {
-        content = lexer[i + 1].raw;
+        content = lexer[i + 1].text;
         break;
       }
     }
-    const key = [];
-    const value = [];
+    //Object to store the key and value
+    const metadata = {};
+
     //Split by enter and get rid of last
     const eachRow = content.split("\n");
     for (let i = 0; i < eachRow.length; i++) {
       // Split between key and value
-      const eachCol = eachRow[i].split(":");
-      key.push(eachCol[0]);
-      value.push(eachCol[1]);
+      const eachCol = eachRow[i].split(": ");
+      metadata[eachCol[0]] = this.getDataType(eachCol[1]);
     }
+    console.log(metadata);
 
-    let returnString = "metadata:[{";
-    // Concat the key and value back to be encoded as json in future
-    for (let i = 0; i < key.length - 1; i++) {
-      returnString = returnString.concat('"', key[i], '": ', value[i], ",\n");
+    return JSON.stringify(metadata);
+  },
+
+  /**
+   * Gets the string and parses it to different type
+   *
+   * @param {string} s string that one wish to convert
+   * @return the string in different dataType
+   */
+  getDataType(s: string): any {
+    if (s.startsWith("{") && s.endsWith("}")) {
+      return Object(s);
+    } else if (s.indexOf("/") !== -1 && !isNaN(Date.parse(s))) {
+      return Date.parse(s);
+    } else if (!isNaN(parseFloat(s))) {
+      return Number(s);
+    } else if (s.startsWith("[") && s.endsWith("]")) {
+      s = s.substring(1, s.length - 1);
+      const split = s.split(", ");
+      for (let i = 0; i < split.length; i++) {
+        // Gets rid of double quotation
+        split[i] = split[i].substring(1, split[i].length - 1);
+      }
+      return split;
+    } else if (s.toLowerCase() == "true" || s.toLowerCase() == "false") {
+      return Boolean(s);
+    } else {
+      // Gets rid of double quotation
+      s = s.substring(1, s.length - 1);
+      return s;
     }
-    returnString = returnString.substring(0, returnString.length - 2);
-    returnString = returnString.concat("}]");
-    returnString = JSON.stringify(returnString);
-    return returnString;
   },
 };
