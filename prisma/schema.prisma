@@ -14,15 +14,14 @@ model Connection {
 }
 
 model VM {
+  user          String
   vm            String     
   exercise      String
   node          String
   connection    Connection @relation(fields: [connection_ip], references: [ip])
   connection_ip String
-  // Since user can only have one VM up at the time user is the @unique
-  // Plan to delete the VM db once it terminates
-  user          String      @unique
   timeLimit     String
   timeStart     DateTime   @default(now())
   timeEnd       DateTime
+  @@unique([user, exercise])
 }

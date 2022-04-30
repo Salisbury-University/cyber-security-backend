@@ -2,7 +2,6 @@ import { PrismaClient, VM } from ".prisma/client";
 import axios from "axios";
 import { marked } from "marked";
 import fs from "fs";
-import https from "https";
 import { config } from "../../config";
 import InsufficientStorageException from "../exceptions/InsufficientStorageException";
 
@@ -207,35 +206,37 @@ export const VirtualMachineService = {
     const vm: number[] = [];
     const vmId: number[] = [];
 
-    axios.post(config.app.node.concat("/api2/json/nodes")).then((res) => {
-      for (let i = 0; i < res.data.length; i++) {
-        node.push(res.data[i].node);
-        // Calculate disk avaliable and push to array
-        disk.push(res.data[i].maxdisk - res.data[i].disk);
-        cpu.push(res.data[i].cpu);
+    this.createAxiosWithToken()
+      .post(config.app.node.concat("/api2/json/nodes"))
+      .then((res) => {
+        for (let i = 0; i < res.data.length; i++) {
+          node.push(res.data[i].node);
+          // Calculate disk avaliable and push to array
+          disk.push(res.data[i].maxdisk - res.data[i].disk);
+          cpu.push(res.data[i].cpu);
 
-        // Get vm running per node
-        this.createAxiosWithToken()
-          .post(
-            config.app.node.concat(
-              "/api2/json/nodes/",
-              res.data[i].node,
-              "/qemu"
+          // Get vm running per node
+          this.createAxiosWithToken()
+            .post(
+              config.app.node.concat(
+                "/api2/json/nodes/",
+                res.data[i].node,
+                "/qemu"
+              )
             )
-          )
-          .then((res) => {
-            vm.push(0);
-            for (let j = 0; j < res.data.length; j++) {
-              if (res.data[i].status === "running") {
-                vm[i]++;
+            .then((res) => {
+              vm.push(0);
+              for (let j = 0; j < res.data.length; j++) {
+                if (res.data[i].status === "running") {
+                  vm[i]++;
+                }
+                if (res.data[i].vmid >= 1000) {
+                  vmId.push(res.data[i].vmid);
+                }
               }
-              if (res.data[i].vmid >= 1000) {
-                vmId.push(res.data[i].vmid);
-              }
-            }
-          });
-      }
-    });
+            });
+        }
+      });
 
     // Get the new id
     const newId = this.checkNewVMID(vmId);
@@ -307,22 +308,8 @@ export const VirtualMachineService = {
       )
       .then((res) => {
         for (var key in res.data) {
-          //Checks for ide only goes 0-3
-          if (key.includes("ide")) {
-            const split = res.data[key].split("size=");
-            if (split.length > 2) {
-              continue;
-            } else {
-              // Last letter is G (gigabyte): hit the jackpot
-              const lastLetter = split[1].length - 1;
-              if (split[1][lastLetter] == "G") {
-                const stringSize = split[1].substring(0, lastLetter);
-                return Number(stringSize) * Math.pow(2, 30) * 8;
-              }
-            }
-          }
-          //Check scsi key only goes 0-30
-          if (key.includes("scsi")) {
+          //Checks for ide 0-3 scsi 0-30
+          if (key.includes("ide") || key.includes("scsi")) {
             const split = res.data[key].split("size=");
             if (split.length > 2) {
               continue;
@@ -408,7 +395,7 @@ export const VirtualMachineService = {
     if (s.startsWith("{") && s.endsWith("}")) {
       return Object(s);
     } else if (s.indexOf("/") !== -1 && !isNaN(Date.parse(s))) {
-      return Date.parse(s);
+      return new Date(s).toLocaleString();
     } else if (!isNaN(parseFloat(s))) {
       return Number(s);
     } else if (s.startsWith("[") && s.endsWith("]")) {
