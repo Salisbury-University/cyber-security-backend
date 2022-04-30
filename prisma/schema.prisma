@@ -7,21 +7,22 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Connection {
-  ip   String @unique
-  port Int
-  VM   VM[]
-}
-
 model VM {
-  user          String
-  vm            String     
-  exercise      String
-  node          String
-  connection    Connection @relation(fields: [connection_ip], references: [ip])
-  connection_ip String
-  timeLimit     String
-  timeStart     DateTime   @default(now())
-  timeEnd       DateTime
+  user            String
+  // This is so we can delete it from the node
+  node            String
+  // Actuall vm id
+  vm              String
+  // Exercise id     
+  exercise        String
+  ip              String
+  port            String
+  timeLimit       String
+  timeStart       DateTime   @default(now())
+  timeEnd         DateTime
+  status          String
+  // Both have to be unique
+  // This is so that it isn't relient on max number of integer
+  // Can scale up to max number the database can hold
   @@unique([user, exercise])
 }

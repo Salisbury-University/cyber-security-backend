@@ -26,21 +26,26 @@ export const VirtualMachineService = {
    * @param {string} user user currently logged in
    * @throw Error on already existing VM
    * */
-  async checkRunningVM(user: string): Promise<void> {
+  async checkRunningVM(user: string): Promise<any> {
     const VM = await prisma.vM.findFirst({
       where: {
         user: user,
       },
     });
-    // VM data is stored or running
+    // If VM exists
     if (VM != null) {
-      // Double checking and terminating if VM is running
+      if (VM.status.toLowerCase() == "stopped") {
+        return;
+      }
+
       if (this.checkTimeEnd(VM)) {
-        this.checkVMExist(VM["vmid"], VM["node"]);
+        const status = this.checkVMExist(VM.exercise, VM.node);
+        this.updateVMDatabase(VM.user, VM.exercise, VM.status);
       } else {
         //Throw error saying already running
       }
     }
+    return;
   },
 
   /**
@@ -49,7 +54,7 @@ export const VirtualMachineService = {
    * @param {string} vmid vmid of vm
    * @param {string} node node where the vm is stored
    */
-  checkVMExist(vmid: string, node: string): void {
+  checkVMExist(vmid: string, node: string): any {
     this.createAxiosWithToken()
       .get(
         config.app.node.concat(
@@ -61,16 +66,38 @@ export const VirtualMachineService = {
         )
       )
       .then((res) => {
+        // No running VM
         if (res.data.status == "") {
-          return;
+          return "stopped";
         }
+
         if (res.data.status == "running") {
           this.stopVM(vmid, node);
         }
+
         this.unlinkVM(vmid, node);
+
+        return "stopped";
       });
   },
 
+  /**
+   *
+   * @param {String} status updating database status
+   */
+  updateVMDatabase(user: string, vmid: string, status: string): void {
+    const VM = prisma.vM.update({
+      where: {
+        user_exercise: {
+          user: user,
+          exercise: vmid,
+        },
+      },
+      data: {
+        status: status,
+      },
+    });
+  },
   /**
    * Force stop the running VM
    *
@@ -96,15 +123,17 @@ export const VirtualMachineService = {
    * @param {string} node node where the vm is stored
    */
   unlinkVM(vmid: string, node: string): void {
-    this.createAxiosWithToken().put(
-      config.app.node.concat(
-        "/api2/json/",
-        node,
-        "/qemu/",
-        vmid,
-        "/unlink?force=true"
+    this.createAxiosWithToken()
+      .put(
+        config.app.node.concat(
+          "/api2/json/",
+          node,
+          "/qemu/",
+          vmid,
+          "/unlink?force=true"
+        )
       )
-    );
+      .catch((error) => {});
   },
 
   /**
@@ -328,6 +357,7 @@ export const VirtualMachineService = {
 
   /**
    * checks the next lowest number to use for newId
+   * All user vm are created from vmid 1000
    *
    * @param {number []} vmid array storing vmid
    * @return {number} newId to use for cloning

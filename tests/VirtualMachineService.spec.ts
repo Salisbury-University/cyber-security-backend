@@ -5,22 +5,22 @@ import fs from "fs";
 
 test.group("Virtual Machine Service", () => {
   // Passing clone
-  test("clone", ({ expect }) => {
-    const vmid = "102";
-    const newid = "1000";
-    VirtualMachineService.cloneTemplate(vmid, newid);
-  });
+  // test("clone", ({ expect }) => {
+  //   const vmid = "102";
+  //   const newid = "1000";
+  //   VirtualMachineService.cloneTemplate(vmid, newid);
+  // });
 
   // Fail clone
-  test("clone fail", ({ expect }, done: Function) => {
-    const vmid = "102";
-    const newid = "1000";
-    try {
-      VirtualMachineService.cloneTemplate(vmid, newid);
-    } catch (e) {
-      expect(e).toBeInstanceOf;
-    }
-  }).waitForDone();
+  // test("clone fail", ({ expect }, done: Function) => {
+  //   const vmid = "102";
+  //   const newid = "1000";
+  //   try {
+  //     VirtualMachineService.cloneTemplate(vmid, newid);
+  //   } catch (e) {
+  //     expect(e).toBeInstanceOf;
+  //   }
+  // }).waitForDone();
 
   //
   // test("parsing", ({ expect }) => {
@@ -29,7 +29,11 @@ test.group("Virtual Machine Service", () => {
   //   console.log(metadata);
   //   console.log(JSON.parse(JSON.stringify(obj)));
   // }),
-  test("clone", ({ expect }) => {
-    VirtualMachineService.cloneTemplate("101", "1000");
+  // test("clone", ({ expect }) => {
+  //   VirtualMachineService.cloneTemplate("101", "1000");
+  // });
+
+  test("Check running", ({ expect }) => {
+    VirtualMachineService.checkRunningVM("1111");
   });
 });
