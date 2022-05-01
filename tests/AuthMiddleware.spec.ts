@@ -1,6 +1,11 @@
+import request from "supertest";
+import { app } from "../app";
 import { test } from "@japa/runner";
+import jwt from "jsonwebtoken";
 
-/**
- * Will be tested once VM or excercise route is implemented
- */
-test.group("AuthMiddleware", () => {});
+test.group("AuthMiddleware", () => {
+  const uid = { uid: "test1234" };
+  const token = jwt.sign(uid, "asdf");
+
+  test("JWT deformed");
+});

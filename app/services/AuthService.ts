@@ -31,6 +31,11 @@ export const AuthService = {
     if (PAYLOAD === null) {
       throw new JwtMalformedException();
     }
+
+    if (PAYLOAD.iat > Date.now()) {
+      throw new JwtMalformedException();
+    }
+
     return PAYLOAD;
   },
 };
