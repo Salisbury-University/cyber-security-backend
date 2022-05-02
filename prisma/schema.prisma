@@ -8,8 +8,8 @@ datasource db {
 }
 
 model Exercise {
-  ID Int @id @default(autoincrement())
   exercise_ID String
-  status String
+  status String @default("incomplete")
   user String 
+  @@unique([exercise_ID,user])
 }

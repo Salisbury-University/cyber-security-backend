@@ -5,14 +5,13 @@ export const ExerciseController = {
 
 async getInfo(req: Request, res: Response, next: NextFunction) {
 	try {
-        const dat = await ExericseService.findInfo(req.params.id, req.user[0].uid)
+        const dat = await ExericseService.findInfo(req.params.id, req.user.uid)
         res.send(dat);
     } catch (error) {
         return next(error);
     }
 
 },
-
 
 
 }

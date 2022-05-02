@@ -6,22 +6,33 @@ const prisma = new PrismaClient()
 
 export const ExericseService = {
 
-async findInfo(exercise_ID, user) {
-    const exerciseInfo = await prisma.exercise.findFirst({
+async findInfo(exercise_ID: string, user: string) {
+    var exerciseInfo = await prisma.exercise.findFirst({
         where:{
             exercise_ID: exercise_ID,
             user: user
         }
     })
     if(exerciseInfo == null) {
-			throw new NotFoundException()
+      exerciseInfo = await prisma.exercise.create({
+        data: {
+          exercise_ID: exercise_ID,
+          user: user
+        }
+      })
+			
+      //throw new NotFoundException()
     }
-    if(exerciseInfo.status == "complete") {
-
-    }
-    
     return exerciseInfo
     
+},
+
+ getContent(exercise_ID: string) {
+  const fileLocation = "exercises/how-to-parse-markdown.md";
+  const fileContent = fs.readFileSync(fileLocation, "utf8");
+  const form = marked.parse(fileContent)
+  var words = form.split("<hr>")
+ return words[0] + words[2]
 },
 
 //  getMetaData(vmid: string): string {
@@ -58,7 +69,7 @@ async findInfo(exercise_ID, user) {
 //      return returnString;
  // },
 
- getMetaData(vmid: string): Object {
+ getMetaData(Excercise_ID: string): Object {
   const fileLocation = "exercises/how-to-parse-markdown.md";
   const fileContent = fs.readFileSync(fileLocation, "utf8");
   const lexer = marked.lexer(fileContent);
@@ -105,5 +116,17 @@ getDataType(s: string): any {
     return s;
   }
 },
+
+async getDisplay(exercise_ID:string, user: string ) {
+var databaseData = await this.findInfo(exercise_ID, user)
+var content = this.getContent(exercise_ID)
+var metadata = this.getMetaData(exercise_ID)
+var display ={};
+
+display["user"] = databaseData
+display["content"] = content
+display["metadata"] = metadata
+return JSON.parse(JSON.stringify(display))
+}
 
 }
