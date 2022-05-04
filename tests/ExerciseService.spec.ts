@@ -1,37 +1,47 @@
 import { test } from '@japa/runner'
-import {marked} from 'marked'
-import {app} from '../app'
+import { marked } from 'marked'
+import { app } from '../app'
 import { ExericseService } from '../app/services/ExerciseService';
 import fs from 'fs'
 import { userInfo } from 'os';
+import NotFoundException from '../app/exceptions/NotFoundException';
 
 
 
 test.group('ExerciseService', () => {
 
-  test('/getMetaData', async({expect}, done:Function)=>{
-   var p = await ExericseService.findInfo("111", "chris")
-   var j = ExericseService.getMetaData("1111")
-   var w = ExericseService.getContent("asd")
-   var t = await ExericseService.getDisplay("sa" , "ll")
-   const fileLocation = "exercises/how-to-parse-markdown.md";
-  const fileContent = fs.readFileSync(fileLocation, "utf8");
-  const form = marked.parse(fileContent)
-   console.log(t)
-   //console.log(JSON.parse('{"key":0}').key)
-   const id = "200"
+   test('/getMetaData', async ({ expect }, done: Function) => {
 
-   const status = "incomplete"
+      var j = ExericseService.getMetaData("how-to-parse-markdown")
 
-   var x = {};
-//metadata[eachCol[0]] = this.getDataType(eachCol[1]);
-   x["Excercise_ID"] = id;
-   x["metadata"] = j;
-   x["status"] = status;
-   
-  // console.log(JSON.parse(JSON.stringify(x)))
+      var x = JSON.parse(JSON.stringify(j))
+      expect(x.title).toMatch('How to parse markdown')
+      done();
+   }).waitForDone();
 
-        done();
-        }).waitForDone();
+   test('/getMetaData/Failed', async ({ expect }, done: Function) => {
+      try {
+         var d = ExericseService.getMetaData("how-to-pare-markdown")
+      } catch(e) {
+         expect(e).toBeInstanceOf(NotFoundException)
+         done();
+      }
+
       
+   }).waitForDone();
+
+
+   test('/getContent', async ({ expect }, done: Function) => {
+      
+      var j = ExericseService.getContent("how-to-parse-markdown")
+      
+       var x = JSON.parse(JSON.stringify(j))
+       console.log(x)
+      // expect(x.title).toMatch('How to parse markdown')
+      done();
+
+      
+   }).waitForDone()
+
+
 })    
