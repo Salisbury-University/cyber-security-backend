@@ -3,7 +3,7 @@ import express from "express";
 const router = express.Router();
 
 import validate from "../http/middleware/ValidationMiddleware";
-import preference from "../schema/preference";
+import preference from "../schema/PreferenceGetGet";
 
 import AuthMiddleware from "../http/middleware/AuthMiddleware";
 router.use(AuthMiddleware);

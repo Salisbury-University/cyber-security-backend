@@ -14,6 +14,7 @@ export const PreferenceService = {
    */
   async update(uid: string, data: JSON): Promise<JSON> {
     try {
+      //@ts-ignore
       const pref = data.preference;
       await prisma.preference.update({
         where: {
@@ -35,7 +36,8 @@ export const PreferenceService = {
    */
   async getCreatePreference(uid: string): Promise<JSON> {
     // Finds the user
-    let preference = await prisma.preference.findUnique({
+    // Find unique gives error
+    let preference = await prisma.preference.findFirst({
       where: {
         uid,
       },

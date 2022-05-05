@@ -32,6 +32,8 @@ export const AuthService = {
       throw new JwtMalformedException();
     }
 
+    // IAT exists but ts kept giving error
+    // @ts-ignore
     if (PAYLOAD.iat > Date.now()) {
       throw new JwtMalformedException();
     }

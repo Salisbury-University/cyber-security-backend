@@ -8,7 +8,7 @@ test.group("AuthService", () => {
    * Basic token data
    */
   const DATA = {
-    u_id: "test1",
+    uid: "test1",
   };
 
   const SECRET_TOKEN: String = "Secret";
@@ -52,7 +52,7 @@ test.group("AuthService", () => {
    */
   test("JWT iat malformed token", async ({ expect }, done: Function) => {
     const IATDATA = {
-      u_id: "test1",
+      uid: "test1",
       iat: Date.now() + 99999,
     };
     const IATTOKEN = jwt.sign(IATDATA, SECRET_TOKEN);
