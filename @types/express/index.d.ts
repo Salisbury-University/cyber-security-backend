@@ -1,11 +1,20 @@
+import { preference } from "@prisma/client";
+
 export {};
-/**
- * {JSON} user: Holds the decoded jwtoken with user information
- */
+
 declare global {
+  // Declaration of data types
+  type user = {
+    uid: string;
+    iat: number;
+  };
+  type preferenceData = {
+    preference: preference;
+  };
+
   namespace Express {
     interface Request {
-      user?: JSON;
+      user?: user;
     }
   }
 }

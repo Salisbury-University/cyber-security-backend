@@ -7,14 +7,13 @@ export const PreferenceService = {
   /**
    * Updates user preference database
    *
-   * @param uid user id
-   * @param data data to update the information
-   * @return {Promise<JSON>} same data that is inputed
+   * @param {string} uid user id
+   * @param {preferenceData} data data to update the information
+   * @return {Promise<preferenceData>} same data that is inputed
    * @throws {UnprocessableEntityException} Data is unprocessable
    */
-  async update(uid: string, data: JSON): Promise<JSON> {
+  async update(uid: string, data: preferenceData): Promise<preferenceData> {
     try {
-      //@ts-ignore
       const pref = data.preference;
       await prisma.preference.update({
         where: {
@@ -32,9 +31,9 @@ export const PreferenceService = {
    * Gets or creates the database with default values
    *
    * @param {string} uid user id
-   * @return {Promise<JSON>} newly created data in JSON
+   * @return {Promise<preferenceData>} newly created data in JSON
    */
-  async getCreatePreference(uid: string): Promise<JSON> {
+  async getCreatePreference(uid: string): Promise<preferenceData> {
     // Finds the user
     // Find unique gives error
     let preference = await prisma.preference.findFirst({

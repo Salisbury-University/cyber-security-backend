@@ -11,7 +11,6 @@ export const PreferenceController = {
    */
   async post(req: Request, res: Response, next: NextFunction) {
     try {
-      //@ts-ignore
       res.send(await PreferenceService.update(req.user.uid, req.body));
     } catch (e) {
       return next(e);
@@ -26,7 +25,6 @@ export const PreferenceController = {
    * @param {NextFunction} next Express NextFunction (used for middleware)
    */
   async get(req: Request, res: Response, next: NextFunction) {
-    //@ts-ignore
     res.send(await PreferenceService.getCreatePreference(req.user.uid));
 
     return next();
