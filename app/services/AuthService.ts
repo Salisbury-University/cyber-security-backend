@@ -23,17 +23,16 @@ export const AuthService = {
    * Decode the Jsonwebtoken
    *
    * @param {String} token Authorization token attached to the HTTP header
-   * @return {JSON} Decoded jsonwebtoken
+   * @return {user} Decoded jsonwebtoken
    * @throws {JwtMalformedException} Throws error when token is malformed or empty
    */
-  decodeToken(token: String): JSON {
-    const PAYLOAD: JSON = jwt.decode(token, { json: true });
+  decodeToken(token: String): user {
+    const PAYLOAD: user = jwt.decode(token, { json: true });
     if (PAYLOAD === null) {
       throw new JwtMalformedException();
     }
 
     // IAT exists but ts kept giving error
-    // @ts-ignore
     if (PAYLOAD.iat > Date.now()) {
       throw new JwtMalformedException();
     }
