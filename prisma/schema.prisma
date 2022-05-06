@@ -7,3 +7,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model preference {
+  uid      String    @unique
+  darkmode  Boolean   @default(false)
+}
