@@ -41,7 +41,7 @@ export const ExericseService = {
 
   },
 
-  getMetaData(Exercise_ID: string): Object {
+  getMetaData(Exercise_ID: string): JSON {
     const fileLocation = "exercises/" + Exercise_ID + ".md";
     try {
       const fileContent = fs.readFileSync(fileLocation, "utf8");
