@@ -12,6 +12,7 @@ export const PreferenceService = {
    * @return {Promise<preferenceData>} same data that is inputed
    * @throws {UnprocessableEntityException} Data is unprocessable
    */
+
   async update(uid: string, data: PreferenceData): Promise<PreferenceData> {
     try {
       const pref = data.preference;
