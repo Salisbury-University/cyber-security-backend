@@ -3,12 +3,12 @@ import { ExericseService } from "../../services/ExerciseService";
 
 export const ExerciseController = {
 
-async getInfo(req: Request, res: Response, next: NextFunction) {
+getInfo(req: Request, res: Response, next: NextFunction) {
 	try {
-        const dat = await ExericseService.findInfo(req.params.id, req.user.uid)
+        const dat = ExericseService.getDisplay(req.params.id)
         res.send(dat);
-    } catch (error) {
-        return next(error);
+    } catch (e) {
+        return next(e);
     }
 
 },

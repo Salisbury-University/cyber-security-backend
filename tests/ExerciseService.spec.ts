@@ -1,9 +1,6 @@
 import { test } from '@japa/runner'
-import { marked } from 'marked'
-import { app } from '../app'
+
 import { ExericseService } from '../app/services/ExerciseService';
-import fs from 'fs'
-import { userInfo } from 'os';
 import NotFoundException from '../app/exceptions/NotFoundException';
 
 
@@ -11,16 +8,16 @@ test.group('ExerciseService', () => {
 
   test('/getMetaData', async ({ expect }, done: Function) => {
 
-    var j = ExericseService.getMetaData("how-to-parse-markdown")
+    var metaData = ExericseService.getMetaData("how-to-parse-markdown")
 
-    var x = JSON.parse(JSON.stringify(j))
-    expect(x.title).toMatch('How to parse markdown')
+    var json = JSON.parse(JSON.stringify(metaData))
+    expect(json.title).toMatch('How to parse markdown')
     done();
   }).waitForDone();
 
   test('/getMetaData/Failed', async ({ expect }, done: Function) => {
     try {
-      var d = ExericseService.getMetaData("how-to-pare-markdown")
+      ExericseService.getMetaData("Failed")
     } catch (e) {
       expect(e).toBeInstanceOf(NotFoundException)
       done();
@@ -31,11 +28,11 @@ test.group('ExerciseService', () => {
 
   test('/getContent', async ({ expect }, done: Function) => {
 
-    var j = ExericseService.getContent("how-to-parse-markdown")
+    var content = ExericseService.getContent("how-to-parse-markdown")
 
-    var x = JSON.parse(JSON.stringify(j))
-    console.log(x)
-    // expect(x.title).toMatch('How to parse markdown')
+    var json = JSON.parse(JSON.stringify(content))
+    expect(json).not.toBeNull()
+
     done();
 
 
@@ -45,37 +42,34 @@ test.group('ExerciseService', () => {
   test('/getContent/Failed', async ({ expect }, done: Function) => {
 
     try {
-      var d = ExericseService.getContent("how-to-pare-markdown")
+      ExericseService.getContent("Failed")
     } catch (e) {
       expect(e).toBeInstanceOf(NotFoundException)
       done();
     }
-
 
   }).waitForDone()
 
 
   test('/getDisplay', async ({ expect }, done: Function) => {
 
-    var j = ExericseService.getDisplay("how-to-parse-markdown", "11")
+    var display = ExericseService.getDisplay("how-to-parse-markdown")
 
-    var x = JSON.parse(JSON.stringify(j))
-    console.log(x)
-    // expect(x.title).toMatch('How to parse markdown')
+    var json = JSON.parse(JSON.stringify(display))
+
+    expect(json.metadata.title).toMatch("How to parse markdown")
     done();
-
 
   }).waitForDone()
 
   test('/getDisplay/Failed', async ({ expect }, done: Function) => {
 
     try {
-      var d = ExericseService.getDisplay("how-to-pare-markdown", "11")
+      ExericseService.getDisplay("Failed")
     } catch (e) {
       expect(e).toBeInstanceOf(NotFoundException)
       done();
     }
-
-
+    done();
   }).waitForDone()
 })    

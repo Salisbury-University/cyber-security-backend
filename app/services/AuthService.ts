@@ -1,7 +1,7 @@
 import axios from 'axios';
 import InvalidCredentialException from '../exceptions/InvalidCredentials';
 import { config } from '../../config'
-import jwt from "jsonwebtoken";
+import jwt, { JwtPayload } from "jsonwebtoken";
 import JwtMalformedException from "../exceptions/JwtMalformedException";
 
 
@@ -55,8 +55,8 @@ export const AuthService = {
    * @throws {JwtMalformedException} Throws error when token is malformed or empty
    */
    decodeToken(token: string): User {
-    const PAYLOAD: User = jwt.decode(token, { json: true });
-
+    const decoded: JwtPayload = jwt.decode(token, { json: true });
+    const PAYLOAD: User = JSON.parse(JSON.stringify(decoded))
     if (PAYLOAD === null) {
       throw new JwtMalformedException();
     }

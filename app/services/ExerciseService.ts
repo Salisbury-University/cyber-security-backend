@@ -1,31 +1,8 @@
-import { PrismaClient } from '@prisma/client';
 import { marked } from 'marked'
 import NotFoundException from '../exceptions/NotFoundException';
 import fs from "fs";
-const prisma = new PrismaClient()
 
 export const ExericseService = {
-
-  async findInfo(exercise_ID: string, user: string) {
-    var exerciseInfo = await prisma.exercise.findFirst({
-      where: {
-        exercise_ID: exercise_ID,
-        user: user
-      }
-    })
-    if (exerciseInfo == null) {
-      exerciseInfo = await prisma.exercise.create({
-        data: {
-          exercise_ID: exercise_ID,
-          user: user
-        }
-      })
-
-      //throw new NotFoundException()
-    }
-    return exerciseInfo
-
-  },
 
   getContent(Exercise_ID: string) {
 
@@ -41,7 +18,7 @@ export const ExericseService = {
 
   },
 
-  getMetaData(Exercise_ID: string): JSON {
+  getMetaData(Exercise_ID: string): Object {
     const fileLocation = "exercises/" + Exercise_ID + ".md";
     try {
       const fileContent = fs.readFileSync(fileLocation, "utf8");
@@ -65,7 +42,7 @@ export const ExericseService = {
       }
       return metadata;
     } catch (e) {
-      throw new NotFoundException
+      throw new NotFoundException()
     }
 
   },
@@ -94,21 +71,20 @@ export const ExericseService = {
     }
   },
 
-  async getDisplay(exercise_ID: string, user: string) {
+  getDisplay(exercise_ID: string) {
     try {
-      var databaseData = await this.findInfo(exercise_ID, user)
       var content = this.getContent(exercise_ID)
       var metadata = this.getMetaData(exercise_ID)
       var display = {};
-  
-      display["user"] = databaseData
+
       display["content"] = content
       display["metadata"] = metadata
+
       return JSON.parse(JSON.stringify(display))
-    } catch(e) {
-        return e
+    } catch (e) {
+      throw new NotFoundException()
     }
-  
+
   }
 
 }
