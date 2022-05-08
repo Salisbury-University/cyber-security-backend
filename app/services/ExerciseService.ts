@@ -7,7 +7,7 @@ export const ExericseService = {
 * Gets the content from the file
 *
 * @param {string} Exercise_ID id for an exercise
-* @return {string} the content passed in
+* @return {string} the content being returned
 * @throws {NotFoundException} File is Not found exception handler
 */
   getContent(Exercise_ID: string): string {
@@ -27,7 +27,7 @@ export const ExericseService = {
 * Gets the MetaData from the file
 *
 * @param {string} Exercise_ID id for an exercise
-* @return {Object} the MetaData passed in
+* @return {Object} the MetaData being returned
 * @throws {NotFoundException} File is Not found exception handler
 */
   getMetaData(Exercise_ID: string): Object {
@@ -63,7 +63,7 @@ export const ExericseService = {
 * Gets DataType and splits it up
 *
 * @param {string} Exercise_ID id for an exercise
-* @return {any} the data parsed passed in
+* @return {any} the data parsed being returned
 */
   getDataType(s: string): any {
     if (s.startsWith("{") && s.endsWith("}")) {
@@ -93,7 +93,7 @@ export const ExericseService = {
 * Displays content and metadata
 *
 * @param {string} Exercise_ID id for an exercise
-* @return {JSON} the JSON passed in
+* @return {JSON} the JSON being returned
 * @throws {NotFoundException} File is Not found exception handler
 */
   getDisplay(Exercise_ID: string) {
