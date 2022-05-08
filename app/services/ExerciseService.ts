@@ -3,9 +3,8 @@ import NotFoundException from '../exceptions/NotFoundException';
 import fs from "fs";
 
 export const ExericseService = {
-
+//Gets the content from the file
   getContent(Exercise_ID: string) {
-
     const fileLocation = "exercises/" + Exercise_ID + ".md";
     try {
       const fileContent = fs.readFileSync(fileLocation, "utf8");
@@ -17,7 +16,7 @@ export const ExericseService = {
     }
 
   },
-
+//Gets the MetaData from the file
   getMetaData(Exercise_ID: string): Object {
     const fileLocation = "exercises/" + Exercise_ID + ".md";
     try {
@@ -46,7 +45,7 @@ export const ExericseService = {
     }
 
   },
-
+//Gets DataType and splits it up
   getDataType(s: string): any {
     if (s.startsWith("{") && s.endsWith("}")) {
       return Object(s);
@@ -70,7 +69,7 @@ export const ExericseService = {
       return s;
     }
   },
-
+  //Displays content and metadata
   getDisplay(exercise_ID: string) {
     try {
       var content = this.getContent(exercise_ID)
