@@ -8,8 +8,9 @@ export const ExericseService = {
 *
 * @param {string} Exercise_ID
 * @return {string} the id passed in
+* @throws {NotFoundException} File is Not found
 */
-  getContent(Exercise_ID: string) {
+  getContent(Exercise_ID: string): string {
     const fileLocation = "exercises/" + Exercise_ID + ".md";
     try {
       const fileContent = fs.readFileSync(fileLocation, "utf8");
@@ -26,7 +27,8 @@ export const ExericseService = {
 * Gets the MetaData from the file
 *
 * @param {string} Exercise_ID
-* @return {string} the id passed in
+* @return {Object} the id passed in
+* @throws {NotFoundException} File is Not found
 */
   getMetaData(Exercise_ID: string): Object {
     const fileLocation = "exercises/" + Exercise_ID + ".md";
@@ -61,7 +63,7 @@ export const ExericseService = {
 * Gets DataType and splits it up
 *
 * @param {string} Exercise_ID
-* @return {string} the id passed in
+* @return {any} the id passed in
 */
   getDataType(s: string): any {
     if (s.startsWith("{") && s.endsWith("}")) {
@@ -91,7 +93,8 @@ export const ExericseService = {
 * Displays content and metadata
 *
 * @param {string} Exercise_ID
-* @return {string} the id passed in
+* @return {JSON} the id passed in
+* @throws {NotFoundException} File is Not found
 */
   getDisplay(Exercise_ID: string) {
     try {

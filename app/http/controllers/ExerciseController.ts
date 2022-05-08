@@ -3,11 +3,13 @@ import { ExericseService } from "../../services/ExerciseService";
 
 export const ExerciseController = {
     /**
-* Calls Function get Display and passes in ID
-*
-* @param {string} message
-* @return {string} the message passed in
-*/
+      * Handles the login request
+      * 
+      * @param req {Request} Express request object
+      * @param res {Response} Express response object
+      * @param next {NextFunction} Express NextFunction (used for middleware)
+      * @throws {NotFoundException} File is Not found
+      */
     getInfo(req: Request, res: Response, next: NextFunction) {
         try {
             const dat = ExericseService.getDisplay(req.params.id)
