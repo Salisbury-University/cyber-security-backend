@@ -21,7 +21,7 @@ router.post("/", validate(schema), IndexController.index);
 
 // Nested router for authentication examples
 import authRouter from "./auth";
-router.use("/auth", authRouter);
+router.use("/api/v1/auth", authRouter);
 
 import preferenceRoute from "./preference";
 router.use("/api/v1/preference", preferenceRoute);
