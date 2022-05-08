@@ -8,7 +8,7 @@ export const ExercisesService = {
    *
    * @return {string []} List of all exercises user is able to see
    */
-  fetchList(): string[] {
+  fetchList(): JSON {
     try {
       const files: string[] = this.getFileName();
       const visibleExercise: string[] = [];
@@ -16,13 +16,12 @@ export const ExercisesService = {
       // Check if it's hidden
       for (let i = 0; i < files.length; i++) {
         const metadata = this.getMetaData(files[i]);
-        console.log(metadata);
         if (metadata.hidden != true) {
           visibleExercise.push(files[i]);
         }
       }
 
-      return visibleExercise;
+      return JSON.parse(JSON.stringify({ exercises: visibleExercise }));
     } catch (e) {
       if (e.status == 404) {
         throw new NotFoundException();
@@ -39,6 +38,7 @@ export const ExercisesService = {
     try {
       const returnFiles: string[] = [];
 
+      // Start from __dirname since it is from abolute path
       const folderLocation = __dirname + "/../../exercises";
       const files: string[] = fs.readdirSync(folderLocation);
       for (let i = 0; i < files.length; i++) {
