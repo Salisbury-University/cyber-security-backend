@@ -3,7 +3,12 @@ import NotFoundException from '../exceptions/NotFoundException';
 import fs from "fs";
 
 export const ExericseService = {
-//Gets the content from the file
+  /**
+* Gets the content from the file
+*
+* @param {string} Exercise_ID
+* @return {string} the id passed in
+*/
   getContent(Exercise_ID: string) {
     const fileLocation = "exercises/" + Exercise_ID + ".md";
     try {
@@ -16,7 +21,13 @@ export const ExericseService = {
     }
 
   },
-//Gets the MetaData from the file
+
+  /**
+* Gets the MetaData from the file
+*
+* @param {string} Exercise_ID
+* @return {string} the id passed in
+*/
   getMetaData(Exercise_ID: string): Object {
     const fileLocation = "exercises/" + Exercise_ID + ".md";
     try {
@@ -45,7 +56,13 @@ export const ExericseService = {
     }
 
   },
-//Gets DataType and splits it up
+
+  /**
+* Gets DataType and splits it up
+*
+* @param {string} Exercise_ID
+* @return {string} the id passed in
+*/
   getDataType(s: string): any {
     if (s.startsWith("{") && s.endsWith("}")) {
       return Object(s);
@@ -69,11 +86,17 @@ export const ExericseService = {
       return s;
     }
   },
-  //Displays content and metadata
-  getDisplay(exercise_ID: string) {
+
+  /**
+* Displays content and metadata
+*
+* @param {string} Exercise_ID
+* @return {string} the id passed in
+*/
+  getDisplay(Exercise_ID: string) {
     try {
-      var content = this.getContent(exercise_ID)
-      var metadata = this.getMetaData(exercise_ID)
+      var content = this.getContent(Exercise_ID)
+      var metadata = this.getMetaData(Exercise_ID)
       var display = {};
 
       display["content"] = content
