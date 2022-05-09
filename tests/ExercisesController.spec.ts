@@ -12,11 +12,54 @@ test.group("ExerciseService", () => {
     Accept: "application/json",
   };
 
-  test("fetchList: pass", async ({ expect }, done: Function) => {
+  /**
+   * PASS:
+   * Test for fetch all exercises route
+   */
+  test("GET /api/v1/exercises: PASS", async ({ expect }, done: Function) => {
     request(app)
       .get("/api/v1/exercises")
       .set(auth)
       .expect(200)
-      .then((res) => {});
-  });
+      .then((res) => {
+        const json = JSON.parse(res.text);
+        expect(typeof json.exercises).toBe("object");
+        done();
+      });
+  }).waitForDone();
+
+  /**
+   * PASS:
+   * Test for fetching page exercises route
+   */
+  test("GET /api/v1/exercises/:page: PASS", async ({
+    expect,
+  }, done: Function) => {
+    request(app)
+      .get("/api/v1/exercises/1")
+      .set(auth)
+      .expect(200)
+      .then((res) => {
+        const json = JSON.parse(res.text);
+        expect(typeof json.exercises).toBe("object");
+        done();
+      });
+  }).waitForDone();
+
+  /**
+   * FAIL: Validation fail
+   * Test for fetching page exercises route
+   */
+  test("GET /api/v1/exercises/:page: FAIL", async ({
+    expect,
+  }, done: Function) => {
+    request(app)
+      .get("/api/v1/exercises/a")
+      .set(auth)
+      .expect(422)
+      .then((res) => {
+        expect(res.status).toEqual(422);
+        done();
+      });
+  }).waitForDone();
 });
