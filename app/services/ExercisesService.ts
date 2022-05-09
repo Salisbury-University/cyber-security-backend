@@ -1,14 +1,43 @@
 import fs from "fs";
 import NotFoundException from "../exceptions/NotFoundException";
 import { marked } from "marked";
+import UnprocessableEntityException from "../exceptions/UnprocessableEntityException";
 
 export const ExercisesService = {
+  fetchPage(page: string) {
+    try {
+      const max: number = 15;
+      const pageNumber: number = Number(page) - 1;
+
+      const list: string[] = this.fetchList();
+      const maxLength: number = list.length;
+      const visibleExercise: string[] = [];
+      // Check if page exceed maxlength
+      if (pageNumber * max > maxLength) {
+        throw new NotFoundException();
+      }
+      // Start from page*max ex. 0 * 15
+      for (let i = pageNumber * max; i < pageNumber * max + 15; i++) {
+        if (i >= maxLength) {
+          break;
+        }
+        visibleExercise.push(list[i]);
+      }
+
+      return visibleExercise;
+    } catch (e) {
+      if (e.status == 404) {
+        throw new NotFoundException();
+      }
+    }
+  },
+
   /**
    * Gets all the exercises from local folder
    *
    * @return {string []} List of all exercises user is able to see
    */
-  fetchList(): JSON {
+  fetchList(): string[] {
     try {
       const files: string[] = this.getFileName();
       const visibleExercise: string[] = [];
@@ -21,7 +50,7 @@ export const ExercisesService = {
         }
       }
 
-      return JSON.parse(JSON.stringify({ exercises: visibleExercise }));
+      return visibleExercise;
     } catch (e) {
       if (e.status == 404) {
         throw new NotFoundException();
@@ -29,6 +58,9 @@ export const ExercisesService = {
     }
   },
 
+  parseToJSON(obj: string[]): JSON {
+    return JSON.parse(JSON.stringify({ exercises: obj }));
+  },
   /**
    * Gets all the file names in exercise folder
    *
