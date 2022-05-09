@@ -1,10 +1,16 @@
 import fs from "fs";
+import { ExerciseService } from "./ExerciseService";
 import NotFoundException from "../exceptions/NotFoundException";
-import { marked } from "marked";
-import UnprocessableEntityException from "../exceptions/UnprocessableEntityException";
 
 export const ExercisesService = {
-  fetchPage(page: string) {
+  /**
+   * Fetch number of exercise on page
+   *
+   * @param {string} page page string from params
+   * @return {string []} List of exercise in max number
+   * @throws {NotFoundException} Throws not found exception when exceeding max number
+   */
+  fetchPage(page: string): string[] {
     try {
       const max: number = 15;
       const pageNumber: number = Number(page) - 1;
@@ -36,6 +42,7 @@ export const ExercisesService = {
    * Gets all the exercises from local folder
    *
    * @return {string []} List of all exercises user is able to see
+   * @throws {NotFoundException} returns when function fails
    */
   fetchList(): string[] {
     try {
@@ -44,8 +51,9 @@ export const ExercisesService = {
 
       // Check if it's hidden
       for (let i = 0; i < files.length; i++) {
-        const metadata = this.getMetaData(files[i]);
-        if (metadata.hidden != true) {
+        const metadata = ExerciseService.getMetaData(files[i]);
+        const json = JSON.parse(JSON.stringify(metadata));
+        if (json.hidden != true) {
           visibleExercise.push(files[i]);
         }
       }
@@ -58,13 +66,22 @@ export const ExercisesService = {
     }
   },
 
+  /**
+   * Parses the object into JSON
+   * with in object exercises
+   *
+   * @param {string []} obj object to make into JSON
+   * @return {JSON} returns object in JSON in form of {exercises: obj}
+   */
   parseToJSON(obj: string[]): JSON {
     return JSON.parse(JSON.stringify({ exercises: obj }));
   },
+
   /**
    * Gets all the file names in exercise folder
    *
    * @return {string[]} List of exercises in the folder
+   * @throws {NotFoundException} Throws error when folder does not exist
    */
   getFileName(): string[] {
     try {
@@ -80,72 +97,6 @@ export const ExercisesService = {
       return returnFiles;
     } catch (e) {
       throw new NotFoundException();
-    }
-  },
-
-  /** Gets the MetaData from the file
-   *
-   * @param {string} Exercise_ID id for an exercise
-   * @return {Object} the MetaData being returned
-   * @throws {NotFoundException} File is Not found exception handler
-   */
-  getMetaData(Exercise_ID: string): Object {
-    try {
-      const fileLocation = "exercises/" + Exercise_ID + ".md";
-      const fileContent = fs.readFileSync(fileLocation, "utf8");
-      const lexer = marked.lexer(fileContent);
-      let content = "";
-      for (let i = 0; i < lexer.length; i++) {
-        if (lexer[i].type == "hr") {
-          content = lexer[i + 1].text;
-          break;
-        }
-      }
-      //Object to store the key and value
-      const metadata = {};
-
-      //Split by enter and get rid of last
-      const eachRow = content.split("\n");
-      for (let i = 0; i < eachRow.length; i++) {
-        // Split between key and value
-        const eachCol = eachRow[i].split(": ");
-        metadata[eachCol[0]] = this.getDataType(eachCol[1]);
-      }
-      return metadata;
-    } catch (e) {
-      throw new NotFoundException();
-    }
-  },
-
-  /**
-   * Gets DataType and splits it up
-   *
-   * @param {string} s string of datatype
-   * @return {any} the data parsed being returned
-   */
-  getDataType(s: string): any {
-    if (s.startsWith("{") && s.endsWith("}")) {
-      return Object(s);
-    } else if (s.indexOf("/") !== -1 && !isNaN(Date.parse(s))) {
-      return new Date(s).toLocaleString();
-    } else if (!isNaN(parseFloat(s))) {
-      return Number(s);
-    } else if (s.startsWith("[") && s.endsWith("]")) {
-      s = s.substring(1, s.length - 1);
-      const split = s.split(", ");
-      for (let i = 0; i < split.length; i++) {
-        // Gets rid of double quotation
-        split[i] = split[i].substring(1, split[i].length - 1);
-      }
-      return split;
-    } else if (s.toLowerCase() == "true") {
-      return Boolean(true);
-    } else if (s.toLowerCase() == "false") {
-      return Boolean(false);
-    } else {
-      // Gets rid of double quotation
-      s = s.substring(1, s.length - 1);
-      return s;
     }
   },
 };
