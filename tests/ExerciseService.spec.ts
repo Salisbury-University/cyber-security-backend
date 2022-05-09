@@ -51,9 +51,9 @@ test.group('ExerciseService', () => {
   }).waitForDone()
 
 
-  test('/getDisplay', async ({ expect }, done: Function) => {
+  test('/fetchData', async ({ expect }, done: Function) => {
 
-    var display = ExericseService.getDisplay("how-to-parse-markdown")
+    var display = ExericseService.fetchData("how-to-parse-markdown")
 
     var json = JSON.parse(JSON.stringify(display))
 
@@ -62,10 +62,10 @@ test.group('ExerciseService', () => {
 
   }).waitForDone()
 
-  test('/getDisplay/Failed', async ({ expect }, done: Function) => {
+  test('/fetchData/Failed', async ({ expect }, done: Function) => {
 
     try {
-      ExericseService.getDisplay("Failed")
+      ExericseService.fetchData("Failed")
     } catch (e) {
       expect(e).toBeInstanceOf(NotFoundException)
       done();

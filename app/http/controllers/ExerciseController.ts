@@ -3,7 +3,7 @@ import { ExericseService } from "../../services/ExerciseService";
 
 export const ExerciseController = {
     /**
-      * Handles the login request
+      * Handles the fetchData request
       * 
       * @param req {Request} Express request object
       * @param res {Response} Express response object
@@ -12,7 +12,7 @@ export const ExerciseController = {
       */
     getInfo(req: Request, res: Response, next: NextFunction) {
         try {
-            const dat = ExericseService.getDisplay(req.params.id)
+            const dat = ExericseService.fetchData(req.params.id)
             res.send(dat);
         } catch (e) {
             return next(e);

@@ -6,16 +6,18 @@ export const ExericseService = {
   /**
 * Gets the content from the file
 *
-* @param {string} Exercise_ID id for an exercise
+* @param {string} exerciseID id for an exercise
 * @return {string} the content being returned
 * @throws {NotFoundException} File is Not found exception handler
 */
-  getContent(Exercise_ID: string): string {
-    const fileLocation = "exercises/" + Exercise_ID + ".md";
+  getContent(exerciseID: string): string {
+    const fileLocation = "exercises/" + exerciseID + ".md";
     try {
       const fileContent = fs.readFileSync(fileLocation, "utf8");
       const form = marked.parse(fileContent)
+      //splits to get content and metaData 
       var words = form.split("<hr>")
+      //returns the content before and after the metaData 
       return words[0] + words[2]
     } catch (e) {
       throw new NotFoundException();
@@ -26,18 +28,20 @@ export const ExericseService = {
   /**
 * Gets the MetaData from the file
 *
-* @param {string} Exercise_ID id for an exercise
+* @param {string} exerciseID id for an exercise
 * @return {Object} the MetaData being returned
 * @throws {NotFoundException} File is Not found exception handler
 */
-  getMetaData(Exercise_ID: string): Object {
-    const fileLocation = "exercises/" + Exercise_ID + ".md";
+  getMetaData(exerciseID: string): Object {
+    const fileLocation = "exercises/" + exerciseID + ".md";
     try {
       const fileContent = fs.readFileSync(fileLocation, "utf8");
       const lexer = marked.lexer(fileContent);
       let content = "";
+     
       for (let i = 0; i < lexer.length; i++) {
         if (lexer[i].type == "hr") {
+          //i+1 after hr from lexer, holds the information from the frontmatter
           content = lexer[i + 1].text;
           break;
         }
@@ -62,7 +66,7 @@ export const ExericseService = {
   /**
 * Gets DataType and splits it up
 *
-* @param {string} Exercise_ID id for an exercise
+* @param {string} exerciseID id for an exercise
 * @return {any} the data parsed being returned
 */
   getDataType(s: string): any {
@@ -90,16 +94,16 @@ export const ExericseService = {
   },
 
   /**
-* Displays content and metadata
+* Fetches content and metadata
 *
-* @param {string} Exercise_ID id for an exercise
+* @param {string} exerciseID id for an exercise
 * @return {JSON} the JSON being returned
 * @throws {NotFoundException} File is Not found exception handler
 */
-  getDisplay(Exercise_ID: string) {
+  fetchData(exerciseID: string) {
     try {
-      var content = this.getContent(Exercise_ID)
-      var metadata = this.getMetaData(Exercise_ID)
+      var content = this.getContent(exerciseID)
+      var metadata = this.getMetaData(exerciseID)
       var display = {};
 
       display["content"] = content
