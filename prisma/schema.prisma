@@ -12,6 +12,7 @@ model Exercise {
   status String @default("incomplete")
   user String 
   @@unique([exercise_ID,user])
+}
 
 model preference {
   uid      String    @unique
