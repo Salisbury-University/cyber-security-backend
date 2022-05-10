@@ -48,8 +48,8 @@ test.group('AuthService', () => {
     uid: "test1",
   };
 
-  const SECRET_TOKEN: String = "Secret";
-  const TOKEN: String = jwt.sign(DATA, SECRET_TOKEN);
+  const SECRET_TOKEN: string = "Secret";
+  const TOKEN: string = jwt.sign(DATA, SECRET_TOKEN);
 
   /**
    * Testing JWT decode function.
@@ -75,7 +75,7 @@ test.group('AuthService', () => {
    * Testing when token is empty
    */
   test("JWT empty token", async ({ expect }, done: Function) => {
-    const EMPTY_TOKEN: String = "";
+    const EMPTY_TOKEN: string = "";
     try {
       await AuthService.decodeToken(EMPTY_TOKEN);
     } catch (e) {

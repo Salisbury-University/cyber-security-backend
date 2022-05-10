@@ -1,7 +1,7 @@
-import axios from "axios";
-import InvalidCredentialException from "../exceptions/InvalidCredentials";
-import { config } from "../../config";
-import jwt from "jsonwebtoken";
+import axios from 'axios';
+import InvalidCredentialException from '../exceptions/InvalidCredentials';
+import { config } from '../../config'
+import jwt, { JwtPayload } from "jsonwebtoken";
 import JwtMalformedException from "../exceptions/JwtMalformedException";
 
 /**
@@ -28,6 +28,7 @@ export const AuthService = {
         throw new InvalidCredentialException();
       });
   },
+
   /**
    * Checks if the token starts with Bearer(JWT token) and a spcae afterward
    *
@@ -42,6 +43,7 @@ export const AuthService = {
     }
     return false;
   },
+
   /**
    * Decode the Jsonwebtoken
    *
@@ -49,10 +51,10 @@ export const AuthService = {
    * @return {user} Decoded jsonwebtoken
    * @throws {JwtMalformedException} Throws error when token is malformed or empty
    */
-
-  decodeToken(token: String): User {
-    const PAYLOAD: User = jwt.decode(token, { json: true });
-
+   decodeToken(token: string): User {
+    const decoded: JwtPayload = jwt.decode(token, { json: true });
+    const PAYLOAD: User = JSON.parse(JSON.stringify(decoded))
+    
     if (PAYLOAD === null) {
       throw new JwtMalformedException();
     }

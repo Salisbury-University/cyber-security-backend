@@ -7,6 +7,12 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Exercise {
+  exercise_ID String
+  status String @default("incomplete")
+  user String 
+  @@unique([exercise_ID,user])
+
 model preference {
   uid      String    @unique
   darkmode  Boolean   @default(false)

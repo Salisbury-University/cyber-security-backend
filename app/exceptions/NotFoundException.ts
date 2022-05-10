@@ -6,7 +6,7 @@ import BaseException from "./BaseException";
  * Contains a default error message and sets the HTTP response status.
  */
 export default class NotFoundException extends BaseException {
-	constructor(message: string = "User not found") {
+	constructor(message: string = "Not found") {
 		super(message, 404);
 	}
 }
