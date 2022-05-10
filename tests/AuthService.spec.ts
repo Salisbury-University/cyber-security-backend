@@ -45,8 +45,7 @@ test.group('AuthService', () => {
    * Basic token data
    */
   const DATA = {
-    u_id: "test1",
-    password: "password",
+    uid: "test1",
   };
 
   const SECRET_TOKEN: string = "Secret";
@@ -79,6 +78,24 @@ test.group('AuthService', () => {
     const EMPTY_TOKEN: string = "";
     try {
       await AuthService.decodeToken(EMPTY_TOKEN);
+    } catch (e) {
+      expect(e).toBeInstanceOf(JwtMalformedException);
+      done();
+    }
+  }).waitForDone();
+
+  /**
+   * Testing JWT iat being after current time
+   */
+  test("JWT iat malformed token", async ({ expect }, done: Function) => {
+    const IATDATA = {
+      uid: "test1",
+      iat: Date.now() + 99999,
+    };
+    const IATTOKEN = jwt.sign(IATDATA, SECRET_TOKEN);
+
+    try {
+      await AuthService.decodeToken(IATTOKEN);
     } catch (e) {
       expect(e).toBeInstanceOf(JwtMalformedException);
       done();

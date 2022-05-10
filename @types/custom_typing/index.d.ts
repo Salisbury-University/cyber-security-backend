@@ -1,4 +1,3 @@
-
 export {};
 
 declare global {
@@ -7,5 +6,4 @@ declare global {
     uid: string
     iat: number
   };
-
 }
