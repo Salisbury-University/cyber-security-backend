@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import { ExericseService } from "../../services/ExerciseService";
+import { ExerciseService } from "../../services/ExerciseService";
 
 export const ExerciseController = {
     /**
@@ -12,7 +12,7 @@ export const ExerciseController = {
       */
     getInfo(req: Request, res: Response, next: NextFunction) {
         try {
-            const dat = ExericseService.fetchData(req.params.id)
+            const dat = ExerciseService.fetchData(req.params.id)
             res.send(dat);
         } catch (e) {
             return next(e);

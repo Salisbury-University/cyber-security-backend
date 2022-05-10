@@ -2,7 +2,7 @@ import { marked } from 'marked'
 import NotFoundException from '../exceptions/NotFoundException';
 import fs from "fs";
 
-export const ExericseService = {
+export const ExerciseService = {
   /**
 * Gets the content from the file
 *

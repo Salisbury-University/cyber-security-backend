@@ -1,6 +1,6 @@
 import { test } from '@japa/runner'
 
-import { ExericseService } from '../app/services/ExerciseService';
+import { ExerciseService } from '../app/services/ExerciseService';
 import NotFoundException from '../app/exceptions/NotFoundException';
 
 
@@ -8,7 +8,7 @@ test.group('ExerciseService', () => {
 
   test('/getMetaData', async ({ expect }, done: Function) => {
 
-    var metaData = ExericseService.getMetaData("how-to-parse-markdown")
+    var metaData = ExerciseService.getMetaData("how-to-parse-markdown")
 
     var json = JSON.parse(JSON.stringify(metaData))
     expect(json.title).toMatch('How to parse markdown')
@@ -17,7 +17,7 @@ test.group('ExerciseService', () => {
 
   test('/getMetaData/Failed', async ({ expect }, done: Function) => {
     try {
-      ExericseService.getMetaData("Failed")
+      ExerciseService.getMetaData("Failed")
     } catch (e) {
       expect(e).toBeInstanceOf(NotFoundException)
       done();
@@ -28,7 +28,7 @@ test.group('ExerciseService', () => {
 
   test('/getContent', async ({ expect }, done: Function) => {
 
-    var content = ExericseService.getContent("how-to-parse-markdown")
+    var content = ExerciseService.getContent("how-to-parse-markdown")
 
     var json = JSON.parse(JSON.stringify(content))
     expect(json).not.toBeNull()
@@ -42,7 +42,7 @@ test.group('ExerciseService', () => {
   test('/getContent/Failed', async ({ expect }, done: Function) => {
 
     try {
-      ExericseService.getContent("Failed")
+      ExerciseService.getContent("Failed")
     } catch (e) {
       expect(e).toBeInstanceOf(NotFoundException)
       done();
@@ -53,7 +53,7 @@ test.group('ExerciseService', () => {
 
   test('/fetchData', async ({ expect }, done: Function) => {
 
-    var display = ExericseService.fetchData("how-to-parse-markdown")
+    var display = ExerciseService.fetchData("how-to-parse-markdown")
 
     var json = JSON.parse(JSON.stringify(display))
 
@@ -65,7 +65,7 @@ test.group('ExerciseService', () => {
   test('/fetchData/Failed', async ({ expect }, done: Function) => {
 
     try {
-      ExericseService.fetchData("Failed")
+      ExerciseService.fetchData("Failed")
     } catch (e) {
       expect(e).toBeInstanceOf(NotFoundException)
       done();
