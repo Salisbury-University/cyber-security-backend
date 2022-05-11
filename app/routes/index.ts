@@ -20,8 +20,12 @@ router.get("/", IndexController.index);
 router.post("/", validate(schema), IndexController.index);
 
 // Nested router for authentication examples
+
 import authRouter from "./auth";
 router.use("/api/v1/auth", authRouter);
+
+import exerciseRouter from "./exercise";
+router.use("/api/v1/exercise", exerciseRouter);
 
 import preferenceRoute from "./preference";
 router.use("/api/v1/preference", preferenceRoute);

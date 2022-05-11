@@ -28,6 +28,7 @@ export const AuthService = {
         throw new InvalidCredentialException();
       });
   },
+
   /**
    * Checks if the token starts with Bearer(JWT token) and a spcae afterward
    *
@@ -42,6 +43,7 @@ export const AuthService = {
     }
     return false;
   },
+
   /**
    * Decode the Jsonwebtoken
    *

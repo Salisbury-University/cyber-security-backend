@@ -1,46 +1,45 @@
-import { test } from '@japa/runner';
-import InvalidCredentialException from '../app/exceptions/InvalidCredentials';
+import { test } from "@japa/runner";
+import InvalidCredentialException from "../app/exceptions/InvalidCredentials";
 import { AuthService } from "../app/services/AuthService";
 import jwt from "jsonwebtoken";
 import JwtMalformedException from "../app/exceptions/JwtMalformedException";
 
-
-test.group('AuthService', () => {
+test.group("AuthService", () => {
   //base cases for testing
-  const uid = "cxarausa"
-  const password = "testing"
+  const uid = "cxarausa";
+  const password = "testing";
 
-  const NotfoundUid = "Test@gmail.com"
-  const wrongPass = "Test"
+  const NotfoundUid = "Test@gmail.com";
+  const wrongPass = "Test";
 
-  test('Login', async ({ expect }, done: Function) => {
-    const token = await AuthService.validateLogin(uid, password)
-    expect(token).not.toBeNull()
+  test("Login", async ({ expect }, done: Function) => {
+    const token = await AuthService.validateLogin(uid, password);
+    expect(token).not.toBeNull();
     done();
   }).waitForDone();
   /**
    * Testing login
    * when user is not found
    */
-  test('Login/User not found', async ({ expect }, done: Function) => {
+  test("Login/User not found", async ({ expect }, done: Function) => {
     try {
-      await AuthService.validateLogin(NotfoundUid, password)
+      await AuthService.validateLogin(NotfoundUid, password);
     } catch (e) {
-      expect(e).toBeInstanceOf(InvalidCredentialException)
+      expect(e).toBeInstanceOf(InvalidCredentialException);
       done();
     }
-  }).waitForDone()
+  }).waitForDone();
   /**
    * Login when password fails
    */
-  test('Login/No matching password', async ({ expect }, done: Function) => {
+  test("Login/No matching password", async ({ expect }, done: Function) => {
     try {
-      await AuthService.validateLogin(uid, wrongPass)
+      await AuthService.validateLogin(uid, wrongPass);
     } catch (e) {
-      expect(e).toBeInstanceOf(InvalidCredentialException)
+      expect(e).toBeInstanceOf(InvalidCredentialException);
       done();
     }
-  }).waitForDone()
+  }).waitForDone();
   /**
    * Basic token data
    */
@@ -48,8 +47,8 @@ test.group('AuthService', () => {
     uid: "test1",
   };
 
-  const SECRET_TOKEN: String = "Secret";
-  const TOKEN: String = jwt.sign(DATA, SECRET_TOKEN);
+  const SECRET_TOKEN: string = "Secret";
+  const TOKEN: string = jwt.sign(DATA, SECRET_TOKEN);
 
   /**
    * Testing JWT decode function.
@@ -75,7 +74,7 @@ test.group('AuthService', () => {
    * Testing when token is empty
    */
   test("JWT empty token", async ({ expect }, done: Function) => {
-    const EMPTY_TOKEN: String = "";
+    const EMPTY_TOKEN: string = "";
     try {
       await AuthService.decodeToken(EMPTY_TOKEN);
     } catch (e) {

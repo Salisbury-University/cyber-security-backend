@@ -2,10 +2,8 @@ import { test } from "@japa/runner";
 import request from "supertest";
 import { app } from "../app";
 import jwt from "jsonwebtoken";
-import InvalidCredentialException from "../app/exceptions/InvalidCredentials";
-import UnprocessableEntityException from "../app/exceptions/UnprocessableEntityException";
 
-test.group("ValidationMiddleware", () => {
+test.group("AuthController", () => {
   const body = {
     username: "cxarausa",
     password: "testing",
