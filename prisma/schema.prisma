@@ -26,3 +26,15 @@ model VM {
   // Can scale up to max number the database can hold
   @@unique([user, exercise])
 }
+
+model Exercise {
+  exercise_ID String
+  status String @default("incomplete")
+  user String 
+  @@unique([exercise_ID,user])
+}
+
+model preference {
+  uid      String    @unique
+  darkmode  Boolean   @default(false)
+}
