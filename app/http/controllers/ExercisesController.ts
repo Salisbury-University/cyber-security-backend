@@ -33,7 +33,7 @@ export const ExercisesController = {
     try {
       res.send(
         ExercisesService.parseToJSON(
-          ExercisesService.fetchPage(req.params.page)
+          ExercisesService.fetchPage(req.params.page, req.body.pagination)
         )
       );
     } catch (e) {

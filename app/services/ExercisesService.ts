@@ -7,12 +7,13 @@ export const ExercisesService = {
    * Fetch number of exercise on page
    *
    * @param {string} page page string from params
+   * @param {number} max maximumm exercise per page
    * @return {string []} List of exercise in max number
    * @throws {NotFoundException} Throws not found exception when exceeding max number
    */
-  fetchPage(page: string): string[] {
+  fetchPage(page: string, pagination: number): string[] {
     try {
-      const max: number = 15;
+      const max: number = Number(pagination);
       const pageNumber: number = Number(page) - 1;
 
       const list: string[] = this.fetchList();
@@ -22,8 +23,9 @@ export const ExercisesService = {
       if (pageNumber * max > maxLength) {
         throw new NotFoundException();
       }
-      // Start from page*max ex. 0 * 15
-      for (let i = pageNumber * max; i < pageNumber * max + 15; i++) {
+      // Start from page*max ex. 0 * 5 = 0
+      // and end at the first max page ex. 0 * 5 + 5 = 5
+      for (let i = pageNumber * max; i < pageNumber * max + max; i++) {
         if (i >= maxLength) {
           break;
         }
