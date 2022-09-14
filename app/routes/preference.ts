@@ -9,7 +9,7 @@ import AuthMiddleware from "../http/middleware/AuthMiddleware";
 router.use(AuthMiddleware);
 
 import { PreferenceController } from "../http/controllers/PreferenceController";
-router.post("/", validate(preference), PreferenceController.post);
-router.get("/", PreferenceController.get);
+//router.post("/", validate(preference), PreferenceController.post);
+//router.get("/", PreferenceController.get);
 
 export default router;
