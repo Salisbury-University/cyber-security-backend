@@ -3,6 +3,20 @@ import { test } from "@japa/runner";
 import { ExerciseService } from "../app/services/ExerciseService";
 import NotFoundException from "../app/exceptions/NotFoundException";
 import { json } from "stream/consumers";
+import { PrismaClient } from "@prisma/client";
+
+const prisma = new PrismaClient();
+
+const deleteExercise = async (userID: string, exerciseID: string) => {
+  await prisma.exercise.delete({
+    where: {
+      exerciseID_user: {
+        exerciseID: exerciseID,
+        user: userID,
+      },
+    },
+  });
+};
 
 test.group("ExerciseService", () => {
   test("/getMetaData", async ({ expect }, done: Function) => {
@@ -61,11 +75,18 @@ test.group("ExerciseService", () => {
 });
 
 test("/getStatus/", async ({ expect }, done: Function) => {
-  const content = ExerciseService.createDB("1111", "4567", "complete");
+  const exerciseID: string = "1111";
+  const userID: string = "4567";
+  const status: string = "complete";
 
-  var json = JSON.parse(JSON.stringify(content));
+  // Create database for the exercise
+  const content = await ExerciseService.createDB(userID, exerciseID, status);
+  // Delete the database
+  await deleteExercise(userID, exerciseID);
+  // Get the status
+  const stat = await ExerciseService.getStatus(userID, exerciseID);
 
-  expect(json).toBeNull();
+  expect(stat).toBe(false);
 
   done();
 }).waitForDone();
