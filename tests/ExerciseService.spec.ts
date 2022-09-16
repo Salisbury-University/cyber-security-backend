@@ -7,6 +7,7 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
+//deletes info from database
 const deleteExercise = async (userID: string, exerciseID: string) => {
   await prisma.exercise.delete({
     where: {
@@ -18,6 +19,7 @@ const deleteExercise = async (userID: string, exerciseID: string) => {
   });
 };
 
+//gets metadata then displays it
 test.group("ExerciseService", () => {
   test("/getMetaData", async ({ expect }, done: Function) => {
     var metaData = ExerciseService.getMetaData("how-to-parse-markdown");
@@ -27,6 +29,7 @@ test.group("ExerciseService", () => {
     done();
   }).waitForDone();
 
+  //fails in getting the metadata
   test("/getMetaData/Failed", async ({ expect }, done: Function) => {
     try {
       ExerciseService.getMetaData("Failed");
@@ -36,6 +39,7 @@ test.group("ExerciseService", () => {
     }
   }).waitForDone();
 
+  //gets content then displays it
   test("/getContent", async ({ expect }, done: Function) => {
     var content = ExerciseService.getContent("how-to-parse-markdown");
 
@@ -45,6 +49,7 @@ test.group("ExerciseService", () => {
     done();
   }).waitForDone();
 
+  //fails getting content
   test("/getContent/Failed", async ({ expect }, done: Function) => {
     try {
       ExerciseService.getContent("Failed");
@@ -54,6 +59,7 @@ test.group("ExerciseService", () => {
     }
   }).waitForDone();
 
+  //fetches data and displays it
   test("/fetchData", async ({ expect }, done: Function) => {
     var display = ExerciseService.fetchData("2333", "how-to-parse-markdown");
 
@@ -63,6 +69,7 @@ test.group("ExerciseService", () => {
     done();
   }).waitForDone();
 
+  //fails fetching data
   test("/fetchData/Failed", async ({ expect }, done: Function) => {
     try {
       ExerciseService.fetchData("2333", "Failed");
@@ -74,6 +81,7 @@ test.group("ExerciseService", () => {
   }).waitForDone();
 });
 
+// will create database with info and check status
 test("/getStatus/", async ({ expect }, done: Function) => {
   const exerciseID: string = "1111";
   const userID: string = "4567";
@@ -81,19 +89,24 @@ test("/getStatus/", async ({ expect }, done: Function) => {
 
   // Create database for the exercise
   const content = await ExerciseService.createDB(userID, exerciseID, status);
-  // Delete the database
-  await deleteExercise(userID, exerciseID);
+
   // Get the status
   const stat = await ExerciseService.getStatus(userID, exerciseID);
 
-  expect(stat).toBe(false);
+  // Delete the database
+  await deleteExercise(userID, exerciseID);
+
+  expect(stat).toBe("complete");
 
   done();
 }).waitForDone();
 
+// Get status with no user
 test("/getStatus/NoUser", async ({ expect }, done: Function) => {
-  const display = ExerciseService.getStatus("101", "233");
+  const exerciseID: string = "1111";
+  const userID: string = "4567";
 
-  expect(display).toEqual(false);
+  const display = await ExerciseService.getStatus(userID, exerciseID);
+  expect(display).toBe(false);
   done();
 }).waitForDone();

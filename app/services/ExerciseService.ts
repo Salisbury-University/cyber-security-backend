@@ -144,7 +144,7 @@ export const ExerciseService = {
   },
 
   /**
-   * Fetches content and metadata
+   * Fetches content, metadata, and status.
    *
    * @param {string} exerciseID id for an exercise
    * @return {JSON} the JSON being returned
