@@ -1,10 +1,11 @@
 import { z } from "zod";
 
 export default z.object({
+  // All params are string
   params: z.object({
-    id: z
+    page: z
       .string({
-        required_error: "An Exercise id is required.",
+        required_error: "A page number is required.",
       })
       .min(1),
   }),

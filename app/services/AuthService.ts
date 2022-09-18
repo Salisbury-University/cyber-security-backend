@@ -1,6 +1,6 @@
-import axios from 'axios';
-import InvalidCredentialException from '../exceptions/InvalidCredentials';
-import { config } from '../../config'
+import axios from "axios";
+import InvalidCredentialException from "../exceptions/InvalidCredentials";
+import { config } from "../../config";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import JwtMalformedException from "../exceptions/JwtMalformedException";
 
@@ -37,8 +37,8 @@ export const AuthService = {
    */
   validate(token: String): boolean {
     // Space for to check for two words
-    const TOKEN_HEADER = "Bearer" + " ";
-    if (token.startsWith(TOKEN_HEADER)) {
+    const tokenHeader = "Bearer" + " ";
+    if (token.startsWith(tokenHeader)) {
       return true;
     }
     return false;
@@ -51,19 +51,20 @@ export const AuthService = {
    * @return {user} Decoded jsonwebtoken
    * @throws {JwtMalformedException} Throws error when token is malformed or empty
    */
-   decodeToken(token: string): User {
+
+  decodeToken(token: String): User {
     const decoded: JwtPayload = jwt.decode(token, { json: true });
-    const PAYLOAD: User = JSON.parse(JSON.stringify(decoded))
-    
-    if (PAYLOAD === null) {
+    const payload: User = JSON.parse(JSON.stringify(decoded));
+
+    if (payload === null) {
       throw new JwtMalformedException();
     }
 
     // IAT exists but ts kept giving error
-    if (PAYLOAD.iat > Date.now()) {
+    if (payload.iat > Date.now()) {
       throw new JwtMalformedException();
     }
 
-    return PAYLOAD;
+    return payload;
   },
 };
