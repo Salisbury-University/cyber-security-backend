@@ -12,7 +12,7 @@ export const ExercisesController = {
    */
   fetchList(req: Request, res: Response, next: NextFunction) {
     try {
-      res.send(ExercisesService.parseToJSON(ExercisesService.fetchList()));
+      res.send(JSON.parse(JSON.stringify(ExercisesService.fetchList())));
     } catch (e) {
       return next(e);
     }
@@ -26,14 +26,16 @@ export const ExercisesController = {
    * @param next {NextFunction} Express NextFunction (used for middleware)
    */
   fetchPage(req: Request, res: Response, next: NextFunction) {
-    // Check params to be number
-    if (isNaN(parseFloat(req.params.page))) {
+    // Check params to be number since all params are string
+    if (isNaN(parseInt(req.params.page))) {
       return next(new UnprocessableEntityException());
     }
     try {
       res.send(
-        ExercisesService.parseToJSON(
-          ExercisesService.fetchPage(req.params.page, req.body.pagination)
+        JSON.parse(
+          JSON.stringify(
+            ExercisesService.fetchPage(req.params.page, req.body.pagination)
+          )
         )
       );
     } catch (e) {

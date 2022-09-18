@@ -13,7 +13,7 @@ export const ExercisesService = {
    */
   fetchPage(page: string, pagination: number): string[] {
     try {
-      const max: number = Number(pagination);
+      const max: number = pagination;
       const pageNumber: number = Number(page) - 1;
 
       const list: string[] = this.fetchList();
@@ -48,7 +48,7 @@ export const ExercisesService = {
    */
   fetchList(): string[] {
     try {
-      const files: string[] = this.getFileName();
+      const files: string[] = this.getAllExerciseFilename();
       const visibleExercise: string[] = [];
 
       // Check if it's hidden
@@ -69,23 +69,12 @@ export const ExercisesService = {
   },
 
   /**
-   * Parses the object into JSON
-   * with in object exercises
-   *
-   * @param {string []} obj object to make into JSON
-   * @return {JSON} returns object in JSON in form of {exercises: obj}
-   */
-  parseToJSON(obj: string[]): JSON {
-    return JSON.parse(JSON.stringify({ exercises: obj }));
-  },
-
-  /**
    * Gets all the file names in exercise folder
    *
    * @return {string[]} List of exercises in the folder
    * @throws {NotFoundException} Throws error when folder does not exist
    */
-  getFileName(): string[] {
+  getAllExerciseFilename(): string[] {
     try {
       const returnFiles: string[] = [];
 
