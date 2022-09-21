@@ -97,13 +97,13 @@ export const ExerciseService = {
   },
 
   /**
-   * gets status of the problem
+   * gets status of the exercise
    *
    * @param {string} exerciseID id for an exercise
    * @return {JSON} the JSON being returned
    * @throws {NotFoundException} File is Not found exception handler
    */
-  async getStatus(uid: string, exerciseID: string) {
+  async getStatus(uid: string, exerciseID: string): Promise<String | boolean> {
     const exerciseStatus = await prisma.exercise.findFirst({
       where: {
         exerciseID: exerciseID,
@@ -122,13 +122,13 @@ export const ExerciseService = {
    *
    * @param {string} exerciseID id for an exercise
    * @return {JSON} the JSON being returned
-   * @throws {NotFoundException} File is Not found exception handler
+   * @throws {UnprocessableEntityException} Contains a default error message and sets the HTTP response status
    */
   async createDB(
     uid: string,
     exerciseID: string,
     status: string = "incomplete"
-  ) {
+  ): Promise<void | UnprocessableEntityException> {
     try {
       const user = await prisma.exercise.create({
         data: {
@@ -138,7 +138,6 @@ export const ExerciseService = {
         },
       });
     } catch (e) {
-      return e;
       throw new UnprocessableEntityException();
     }
   },
@@ -150,7 +149,7 @@ export const ExerciseService = {
    * @return {JSON} the JSON being returned
    * @throws {NotFoundException} File is Not found exception handler
    */
-  fetchData(uid: string, exerciseID: string) {
+  fetchData(uid: string, exerciseID: string): string {
     try {
       const content = this.getContent(exerciseID);
       const metadata = this.getMetaData(exerciseID);
