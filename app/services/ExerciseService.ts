@@ -87,8 +87,10 @@ export const ExerciseService = {
         split[i] = split[i].substring(1, split[i].length - 1);
       }
       return split;
-    } else if (s.toLowerCase() == "true" || s.toLowerCase() == "false") {
-      return Boolean(s);
+    } else if (s.toLowerCase() == "true") {
+      return Boolean(true);
+    } else if (s.toLowerCase() == "false") {
+      return Boolean(false);
     } else {
       // Gets rid of double quotation
       s = s.substring(1, s.length - 1);
