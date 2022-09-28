@@ -1,6 +1,11 @@
 import { marked } from "marked";
 import NotFoundException from "../exceptions/NotFoundException";
 import fs from "fs";
+import { string } from "zod";
+import { PrismaClient } from "@prisma/client";
+import UnprocessableEntityException from "../exceptions/UnprocessableEntityException";
+
+const prisma = new PrismaClient();
 
 export const ExerciseService = {
   /**
@@ -94,20 +99,68 @@ export const ExerciseService = {
   },
 
   /**
-   * Fetches content and metadata
+   * gets status of the exercise
    *
    * @param {string} exerciseID id for an exercise
    * @return {JSON} the JSON being returned
    * @throws {NotFoundException} File is Not found exception handler
    */
-  fetchData(exerciseID: string) {
+  async getStatus(uid: string, exerciseID: string): Promise<String | boolean> {
+    const exerciseStatus = await prisma.exercise.findFirst({
+      where: {
+        exerciseID: exerciseID,
+        user: uid,
+      },
+    });
+    if (exerciseStatus == null) {
+      return false;
+    }
+
+    return exerciseStatus.status;
+  },
+
+  /**
+   * creates a Database.
+   *
+   * @param {string} exerciseID id for an exercise
+   * @return {JSON} the JSON being returned
+   * @throws {UnprocessableEntityException} Contains a default error message and sets the HTTP response status
+   */
+  async createDB(
+    uid: string,
+    exerciseID: string,
+    status: string = "incomplete"
+  ): Promise<void | UnprocessableEntityException> {
     try {
-      var content = this.getContent(exerciseID);
-      var metadata = this.getMetaData(exerciseID);
-      var display = {};
+      const user = await prisma.exercise.create({
+        data: {
+          exerciseID: exerciseID,
+          user: uid,
+          status: status,
+        },
+      });
+    } catch (e) {
+      throw new UnprocessableEntityException();
+    }
+  },
+
+  /**
+   * Fetches content, metadata, and status.
+   *
+   * @param {string} exerciseID id for an exercise
+   * @return {JSON} the JSON being returned
+   * @throws {NotFoundException} File is Not found exception handler
+   */
+  fetchData(uid: string, exerciseID: string): string {
+    try {
+      const content = this.getContent(exerciseID);
+      const metadata = this.getMetaData(exerciseID);
+      const status = this.getStatus(uid, exerciseID);
+      const display = {};
 
       display["content"] = content;
       display["metadata"] = metadata;
+      display["status"] = status;
 
       return JSON.parse(JSON.stringify(display));
     } catch (e) {
