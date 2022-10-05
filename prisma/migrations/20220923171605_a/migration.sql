@@ -2,8 +2,8 @@
 CREATE TABLE "VM" (
     "user" TEXT NOT NULL,
     "node" TEXT NOT NULL,
-    "vm" TEXT NOT NULL,
-    "exercise" TEXT NOT NULL,
+    "vmId" TEXT NOT NULL,
+    "exerciseId" TEXT NOT NULL,
     "ip" TEXT NOT NULL,
     "port" TEXT NOT NULL,
     "timeLimit" TEXT NOT NULL,
@@ -26,7 +26,7 @@ CREATE TABLE "preference" (
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "VM_user_exercise_key" ON "VM"("user", "exercise");
+CREATE UNIQUE INDEX "VM_user_exerciseId_key" ON "VM"("user", "exerciseId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Exercise_exercise_ID_user_key" ON "Exercise"("exercise_ID", "user");

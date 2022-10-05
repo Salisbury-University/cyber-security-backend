@@ -1,24 +1,15 @@
 import { PrismaClient, VM } from ".prisma/client";
+import { ExerciseService } from "./ExerciseService";
 import axios from "axios";
 import { marked } from "marked";
-import fs from "fs";
+import fs, { unlink } from "fs";
 import { config } from "../../config";
 import InsufficientStorageException from "../exceptions/InsufficientStorageException";
+import VirtualMachineConflitException from "../exceptions/VirtualMachineConflictException";
 
 const prisma = new PrismaClient();
 
 export const VirtualMachineService = {
-  /**
-   * Check if VM timeEnd with current time
-   *
-   * @param {VM} VM virtual machine databse for currently running
-   * @return {boolean} returns true if the time is earlier than current time
-   */
-  checkTimeEnd(VMinfo: VM): boolean {
-    if (VMinfo.timeEnd < new Date()) return false;
-    return true;
-  },
-
   /**
    * Checks if the user already has a VM running
    * Terminates if time ended
@@ -32,72 +23,43 @@ export const VirtualMachineService = {
         user: user,
       },
     });
-    // If VM exists
+    // If VM exists delete from the database and stop the VM and delete it
     if (VM != null) {
-      if (VM.status.toLowerCase() == "stopped") {
-        return;
-      }
-
-      if (this.checkTimeEnd(VM)) {
-        const status = this.checkVMExist(VM.exercise, VM.node);
-        this.updateVMDatabase(VM.user, VM.exercise, VM.status);
-      } else {
-        //Throw error saying already running
-      }
+      throw new VirtualMachineConflitException();
     }
     return;
   },
 
   /**
-   * Check if the VM exist in the server
+   * checks the next lowest number to use for newId
+   * All user vm are created from vmid 1000
    *
-   * @param {string} vmid vmid of vm
-   * @param {string} node node where the vm is stored
+   * @param {number []} vmid array storing vmid
+   * @return {number} newId to use for cloning
    */
-  checkVMExist(vmid: string, node: string): any {
-    this.createAxiosWithToken()
-      .get(
-        config.app.node.concat(
-          "/api2/json/",
-          node,
-          "/qemu/",
-          vmid,
-          "/status/current"
-        )
-      )
-      .then((res) => {
-        // No running VM
-        if (res.data.status == "") {
-          return "stopped";
-        }
-
-        if (res.data.status == "running") {
-          this.stopVM(vmid, node);
-        }
-
-        this.unlinkVM(vmid, node);
-
-        return "stopped";
-      });
-  },
-
-  /**
-   *
-   * @param {String} status updating database status
-   */
-  updateVMDatabase(user: string, vmid: string, status: string): void {
-    const VM = prisma.vM.update({
-      where: {
-        user_exercise: {
-          user: user,
-          exercise: vmid,
-        },
-      },
-      data: {
-        status: status,
+  async assignNewVMID(vmid: number[], user: string): Promise<number> {
+    const VM = await prisma.vM.findMany({
+      orderBy: {
+        vmId: "asc",
       },
     });
+    let newId = 1000;
+    // Loop through the virtual machine and assign smallest number closest to 1000
+    for (let i = 0; i < VM.length; i++) {
+      if (parseInt(VM[i].vmId) == newId) {
+        newId++;
+      } else {
+        break;
+      }
+    }
+    await prisma.vM.create({
+      data: {
+        user: user,
+      },
+    });
+    return newId;
   },
+
   /**
    * Force stop the running VM
    *
@@ -356,25 +318,6 @@ export const VirtualMachineService = {
   },
 
   /**
-   * checks the next lowest number to use for newId
-   * All user vm are created from vmid 1000
-   *
-   * @param {number []} vmid array storing vmid
-   * @return {number} newId to use for cloning
-   */
-  checkNewVMID(vmid: number[]): number {
-    let newId = 1000;
-    vmid.sort();
-    for (let i = 0; i < vmid.length; i++) {
-      if (newId == vmid[i]) {
-        newId++;
-        continue;
-      }
-      return newId;
-    }
-  },
-
-  /**
    * Creates axios instance with token for ease of use
    */
   createAxiosWithToken(): any {
@@ -383,65 +326,5 @@ export const VirtualMachineService = {
         Authorization: config.app.token,
       },
     });
-  },
-
-  /**
-   * Gets the front matter from the md file
-   *
-   * @param vmid id of vm
-   * @return JSON formated string
-   */
-  getMetaData(vmid: string): Object {
-    const fileLocation = "exercises/" + vmid + ".md";
-    const fileContent = fs.readFileSync(fileLocation, "utf8");
-    const lexer = marked.lexer(fileContent);
-    let content = "";
-    for (let i = 0; i < lexer.length; i++) {
-      if (lexer[i].type == "hr") {
-        content = lexer[i + 1].text;
-        break;
-      }
-    }
-    //Object to store the key and value
-    const metadata = {};
-
-    //Split by enter and get rid of last
-    const eachRow = content.split("\n");
-    for (let i = 0; i < eachRow.length; i++) {
-      // Split between key and value
-      const eachCol = eachRow[i].split(": ");
-      metadata[eachCol[0]] = this.getDataType(eachCol[1]);
-    }
-    return metadata;
-  },
-
-  /**
-   * Gets the string and parses it to different type
-   *
-   * @param {string} s string that one wish to convert
-   * @return the string in different dataType
-   */
-  getDataType(s: string): any {
-    if (s.startsWith("{") && s.endsWith("}")) {
-      return Object(s);
-    } else if (s.indexOf("/") !== -1 && !isNaN(Date.parse(s))) {
-      return new Date(s).toLocaleString();
-    } else if (!isNaN(parseFloat(s))) {
-      return Number(s);
-    } else if (s.startsWith("[") && s.endsWith("]")) {
-      s = s.substring(1, s.length - 1);
-      const split = s.split(", ");
-      for (let i = 0; i < split.length; i++) {
-        // Gets rid of double quotation
-        split[i] = split[i].substring(1, split[i].length - 1);
-      }
-      return split;
-    } else if (s.toLowerCase() == "true" || s.toLowerCase() == "false") {
-      return Boolean(s);
-    } else {
-      // Gets rid of double quotation
-      s = s.substring(1, s.length - 1);
-      return s;
-    }
   },
 };

@@ -8,23 +8,15 @@ datasource db {
 }
 
 model VM {
-  user            String
-  // This is so we can delete it from the node
+  user            String @unique
   node            String
-  // Actuall vm id
-  vm              String
-  // Exercise id     
-  exercise        String
+  vmId              String  
+  exerciseId        String
   ip              String
   port            String
   timeLimit       String
   timeStart       DateTime   @default(now())
   timeEnd         DateTime
-  status          String
-  // Both have to be unique
-  // This is so that it isn't relient on max number of integer
-  // Can scale up to max number the database can hold
-  @@unique([user, exercise])
 }
 
 model Exercise {
