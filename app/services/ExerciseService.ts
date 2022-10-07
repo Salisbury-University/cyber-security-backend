@@ -31,7 +31,7 @@ export const ExerciseService = {
    * @return {Object} the MetaData being returned
    * @throws {NotFoundException} File is Not found exception handler
    */
-  getMetaData(exerciseID: string): Object {
+  getMetadata(exerciseID: string): object {
     const fileLocation = "exercises/" + exerciseID + ".md";
     try {
       const fileContent = fs.readFileSync(fileLocation, "utf8");
@@ -101,7 +101,7 @@ export const ExerciseService = {
   fetchData(exerciseID: string) {
     try {
       var content = this.getContent(exerciseID);
-      var metadata = this.getMetaData(exerciseID);
+      var metadata = this.getMetadata(exerciseID);
       var display = {};
 
       display["content"] = content;

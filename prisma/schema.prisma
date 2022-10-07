@@ -9,14 +9,14 @@ datasource db {
 
 model VM {
   user            String @unique
-  node            String
+  node            String 
   vmId              String  
-  exerciseId        String
-  ip              String
-  port            String
-  timeLimit       String
+  exerciseId        String 
+  ip              String 
+  port            String 
+  timeLimit       String 
   timeStart       DateTime   @default(now())
-  timeEnd         DateTime
+  timeEnd         DateTime  @default(now())
 }
 
 model Exercise {

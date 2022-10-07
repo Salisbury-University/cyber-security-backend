@@ -12,18 +12,22 @@ const prisma = new PrismaClient();
 export const VirtualMachineService = {
   /**
    * Checks if the user already has a VM running
-   * Terminates if time ended
+   * and throw error if exists
    *
    * @param {string} user user currently logged in
-   * @throw Error on already existing VM
+   * @throw virtual machine conflict exception
+   *
+   * @return {Promise<void | VirtualMachineConflitException}
    * */
-  async checkRunningVM(user: string): Promise<any> {
+  async checkRunningVM(
+    user: string
+  ): Promise<void | VirtualMachineConflitException> {
     const VM = await prisma.vM.findFirst({
       where: {
         user: user,
       },
     });
-    // If VM exists delete from the database and stop the VM and delete it
+    // Throw exception if VM exists in database
     if (VM != null) {
       throw new VirtualMachineConflitException();
     }
@@ -37,7 +41,7 @@ export const VirtualMachineService = {
    * @param {number []} vmid array storing vmid
    * @return {number} newId to use for cloning
    */
-  async assignNewVMID(vmid: number[], user: string): Promise<number> {
+  async assignNewVMID(exerciseId: string, user: string): Promise<number> {
     const VM = await prisma.vM.findMany({
       orderBy: {
         vmId: "asc",
@@ -52,14 +56,60 @@ export const VirtualMachineService = {
         break;
       }
     }
+    const metadata: Object = ExerciseService.getMetadata(exerciseId);
+    const endTime: Date = this.getVMEndTime(metadata["timelimit"]);
+
+    // Create the to vmid so that it will be there
     await prisma.vM.create({
       data: {
         user: user,
+        vmId: String(newId),
+        node: "",
+        exerciseId: exerciseId,
+        ip: "",
+        port: "",
+        timeLimit: metadata["timelimit"],
+        timeEnd: endTime,
       },
     });
     return newId;
   },
 
+  /**
+   * Get the endtime of exercise
+   *
+   * @param {string} timeLimit Timelimit in xxhxxmxxs
+   * @returns {Date}
+   */
+  getVMEndTime(timeLimit: string): Date {
+    const lowerCaseTime = timeLimit.toLowerCase();
+    let hours = 0,
+      mins = 0,
+      secs = 0;
+    let splitHours, splitMin, splitSec;
+    splitHours = timeLimit.split("h");
+
+    if (splitHours.length == 2) {
+      hours = parseFloat(splitHours[0]);
+      splitMin = splitHours[1].split("m");
+    } else {
+      splitMin = timeLimit.split("m");
+    }
+
+    if (splitMin.length == 2) {
+      mins = parseFloat(splitMin[0]);
+      splitSec = splitMin[1].split("s");
+    } else {
+      splitSec = timeLimit.split("s");
+    }
+
+    if (splitSec.length == 2) {
+      secs = parseFloat(splitSec[0]);
+    }
+    const currTime = new Date().getTime();
+    const endTime = new Date(currTime + (hours * 60 * 60 + mins * 60 + secs));
+    return endTime;
+  },
   /**
    * Force stop the running VM
    *
@@ -189,7 +239,11 @@ export const VirtualMachineService = {
    * @param {string} vmid number of vmid to clone
    * @return {string} return the node that the template should be cloned to
    */
-  selectNodeLoad(vmid: string): string[] {
+  async selectNodeLoad(
+    vmid: string,
+    exerciseId: string,
+    user: string
+  ): string[] {
     // Gets the list of node (includes node name / cpu usage / disk avaliable)
     const node: string[] = [];
     const disk: number[] = [];
@@ -230,7 +284,7 @@ export const VirtualMachineService = {
       });
 
     // Get the new id
-    const newId = this.checkNewVMID(vmId);
+    const newId = await this.assignNewVMID(exerciseId, user);
 
     // Get the size of template
     const size = this.getSizeTemplate(vmid);
