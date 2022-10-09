@@ -41,7 +41,11 @@ export const VirtualMachineService = {
    * @param {number []} vmid array storing vmid
    * @return {number} newId to use for cloning
    */
-  async assignNewVMID(exerciseId: string, user: string): Promise<number> {
+  async assignNewVMID(
+    exerciseId: string,
+    user: string,
+    newLoad: string
+  ): Promise<number> {
     const VM = await prisma.vM.findMany({
       orderBy: {
         vmId: "asc",
@@ -64,7 +68,7 @@ export const VirtualMachineService = {
       data: {
         user: user,
         vmId: String(newId),
-        node: "",
+        node: newLoad,
         exerciseId: exerciseId,
         ip: "",
         port: "",
@@ -155,11 +159,15 @@ export const VirtualMachineService = {
    * @param {string} vmid vmid of vm
    * @return error from function
    */
-  async createVM(user: string, vmid: string): Promise<JSON> {
+  async createVM(
+    user: string,
+    vmid: string,
+    exerciseId: string
+  ): Promise<void> {
     try {
       const load = this.selectNodeLoad(vmid);
-      const newNode = load[0];
-      const newId = load[1];
+      const newNode = load;
+      const newId = await this.assignNewVMID(exerciseId, user, newNode);
       this.cloneTemplate(vmid, newId);
       this.migrateTemplate(newId, newNode);
       this.startVM(newId, newNode);
@@ -234,7 +242,8 @@ export const VirtualMachineService = {
   },
 
   /**
-   * Checks the load by VM running and
+   * Checks for load of each node and determine based on:
+   * Disk size, VM running, CPU, ram
    *
    * @param {string} vmid number of vmid to clone
    * @return {string} return the node that the template should be cloned to
@@ -243,22 +252,18 @@ export const VirtualMachineService = {
     vmid: string,
     exerciseId: string,
     user: string
-  ): string[] {
+  ): Promise<string> {
     // Gets the list of node (includes node name / cpu usage / disk avaliable)
-    const node: string[] = [];
-    const disk: number[] = [];
-    const cpu: number[] = [];
-    const vm: number[] = [];
-    const vmId: number[] = [];
+    const node: object = [];
 
     this.createAxiosWithToken()
       .post(config.app.node.concat("/api2/json/nodes"))
       .then((res) => {
         for (let i = 0; i < res.data.length; i++) {
-          node.push(res.data[i].node);
+          const currNode = res.data[i].node;
           // Calculate disk avaliable and push to array
-          disk.push(res.data[i].maxdisk - res.data[i].disk);
-          cpu.push(res.data[i].cpu);
+          const currDisk = res.data[i].maxdisk - res.data[i].disk;
+          const currCPU = res.data[i].cpu;
 
           // Get vm running per node
           this.createAxiosWithToken()
@@ -270,68 +275,66 @@ export const VirtualMachineService = {
               )
             )
             .then((res) => {
-              vm.push(0);
+              const currVM = [];
               for (let j = 0; j < res.data.length; j++) {
-                if (res.data[i].status === "running") {
-                  vm[i]++;
-                }
                 if (res.data[i].vmid >= 1000) {
-                  vmId.push(res.data[i].vmid);
+                  currVM.push(res.data[i].vmid);
                 }
               }
+              node[i] = {
+                node: currNode,
+                disk: currDisk,
+                cpu: currCPU,
+                vm: currVM,
+              };
             });
         }
       });
-
-    // Get the new id
-    const newId = await this.assignNewVMID(exerciseId, user);
 
     // Get the size of template
     const size = this.getSizeTemplate(vmid);
 
     // Check each node disk storage size to see if template can be clones
     // Otherwise remove it from the array
-    for (let i = 0; i < disk.length; i++) {
-      if (size > disk[i]) {
-        disk.splice(i, 1);
-        cpu.splice(i, 1);
-        vm.splice(i, 1);
-        node.splice(i, 1);
+    for (let i = 0; i < Object.keys(node).length; i++) {
+      if (size > node[i].disk) {
+        delete node[i];
       }
     }
 
     // If no storage is free, send error
-    if (disk.length < 1) {
+    if (Object.keys(node).length < 1) {
       throw new InsufficientStorageException();
     }
 
-    // Check least running vm or if all are the same
-    let sameVM = true;
-    let index = 0;
-    for (let i = 1; i < vm.length; i++) {
-      if (sameVM) {
-        if (vm[index] != vm[i]) {
-          sameVM = false;
+    // Check if the number of VM running are the same
+    // If same, it needs to be checked against CPU usage
+    let sameNumVMRunning = true;
+    let balanceNodeIndex = 0;
+    for (let i = 1; i < Object.keys(node).length; i++) {
+      if (sameNumVMRunning == false) {
+        if (node[balanceNodeIndex].vm.length > node[i].vm.length) {
+          balanceNodeIndex = i;
         }
       }
-      if (sameVM == false) {
-        if (vm[index] > vm[i]) {
-          index = i;
+      if (sameNumVMRunning) {
+        if (node[balanceNodeIndex].vm.length != node[i].vm.length) {
+          sameNumVMRunning = false;
         }
       }
     }
 
     // If all the same number of running vm check by cpu usage
-    if (sameVM) {
-      for (let i = 1; cpu.length; i++) {
-        if (cpu[index] > cpu[i]) {
-          index = i;
+    if (sameNumVMRunning) {
+      for (let i = 1; Object.keys(node).length; i++) {
+        if (node[balanceNodeIndex].cpu > node[i].cpu) {
+          balanceNodeIndex = i;
         }
       }
     }
 
     // Return the name of the least node
-    return [node[index], String(newId)];
+    return node[balanceNodeIndex].node;
   },
 
   /**
