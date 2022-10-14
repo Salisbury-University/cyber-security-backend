@@ -19,10 +19,27 @@ export const ExerciseController = {
       return next(e);
     }
   },
+
+  /**
+   * Handles the fetchData request
+   *
+   * @param req {Request} Express request object
+   * @param res {Response} Express response object
+   * @param next {NextFunction} Express NextFunction (used for middleware)
+   * @throws {VirtualMachineConflictException} File is Not found
+   */
   async requestVM(req: Request, res: Response, next: NextFunction) {
     try {
       VirtualMachineService.checkRunningVM(req.user.uid);
-      VirtualMachineService.createVM(req.user.uid, String(req.params.id));
+      let nodeName = "";
+      if (req.params.node) {
+        nodeName = req.params.node;
+      }
+      VirtualMachineService.createVM(
+        req.user.uid,
+        String(req.params.id),
+        nodeName
+      );
     } catch (e) {
       return next(e);
     }

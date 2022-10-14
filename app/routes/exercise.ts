@@ -10,5 +10,6 @@ import validate from "../http/middleware/ValidationMiddleware";
 import exerciseSchema from "../schema/ExerciseGetInfo";
 
 router.get("/:id", validate(exerciseSchema), ExerciseController.getInfo);
+router.get("/:id/start", ExerciseController.requestVM);
 
 export default router;

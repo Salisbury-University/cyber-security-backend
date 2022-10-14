@@ -3,7 +3,7 @@ import { ExerciseService } from "./ExerciseService";
 import axios from "axios";
 import { config } from "../../config";
 import InsufficientStorageException from "../exceptions/InsufficientStorageException";
-import VirtualMachineConflitException from "../exceptions/VirtualMachineConflictException";
+import VirtualMachineConflictException from "../exceptions/VirtualMachineConflictException";
 
 const prisma = new PrismaClient();
 
@@ -27,6 +27,7 @@ export const VirtualMachineService = {
     try {
       let newNode = "";
       let listOfVM = [];
+
       if (nodeName != "") {
         newNode = nodeName;
         listOfVM = this.getListofVM();
@@ -63,11 +64,11 @@ export const VirtualMachineService = {
    * @param {string} user user currently logged in
    * @throw virtual machine conflict exception
    *
-   * @return {Promise<void | VirtualMachineConflitException}
+   * @return {Promise<void | VirtualMachineConflictException}
    * */
   async checkRunningVM(
     user: string
-  ): Promise<void | VirtualMachineConflitException> {
+  ): Promise<void | VirtualMachineConflictException> {
     const VM = await prisma.vM.findFirst({
       where: {
         user: user,
@@ -75,7 +76,7 @@ export const VirtualMachineService = {
     });
     // Throw exception if VM exists in database
     if (VM != null) {
-      throw new VirtualMachineConflitException();
+      throw new VirtualMachineConflictException();
     }
     return;
   },
