@@ -25,14 +25,17 @@ export const VirtualMachineService = {
     nodeName: string = ""
   ): Promise<void> {
     try {
+      const exerciseNode = this.getNodeOfExercise(exerciseId);
+
       let newNode = "";
       let listOfVM = [];
 
+      // If nodeName is not empty then it is assigned from front end
       if (nodeName != "") {
         newNode = nodeName;
-        listOfVM = this.getListofVM();
+        listOfVM = this.getListofUsedVMID();
       } else {
-        const load = this.selectNodeLoad(exerciseId);
+        const load = this.selectNodeLoad(exerciseId, exerciseNode);
         newNode = load[0];
         listOfVM = load[1];
       }
@@ -44,10 +47,10 @@ export const VirtualMachineService = {
         newNode,
         listOfVM
       );
-      this.cloneTemplate(exerciseId, newId);
+      this.cloneTemplate(exerciseId, exerciseNode, newId);
 
       if (newNode !== config.app.nodename) {
-        this.migrateTemplate(newId, newNode);
+        this.migrateTemplate(newId, newNode, exerciseNode);
       }
 
       this.startVM(newId, newNode);
@@ -64,7 +67,7 @@ export const VirtualMachineService = {
    * @param {string} user user currently logged in
    * @throw virtual machine conflict exception
    *
-   * @return {Promise<void | VirtualMachineConflictException}
+   * @return {Promise<void | VirtualMachineConflictException>}
    * */
   async checkRunningVM(
     user: string
@@ -173,7 +176,7 @@ export const VirtualMachineService = {
   startVM(vmid: string, node: string): void {
     this.createAxiosWithToken().post(
       config.app.node.concat(
-        "/api2/json/",
+        "/api2/json/nodes/",
         node,
         "/qemu/",
         vmid,
@@ -188,54 +191,68 @@ export const VirtualMachineService = {
    * @param {string} newId Id of newly created virtual machine
    * @throw Error during migration
    * */
-  async migrateTemplate(newId: string, newNode: string): Promise<void> {
+  async migrateTemplate(
+    newId: string,
+    exerciseNode: string,
+    newNode: string
+  ): Promise<void> {
     // Migrate the vm to new node
     await this.createAxiosWithToken()
       .post(
         config.app.node.concat(
-          "/api2/json/nodes",
-          config.app.nodename,
+          "/api2/json/nodes/",
+          exerciseNode,
           "/qemu/",
           newId,
           "/migrate?target=",
           newNode
         )
       )
-      .then((res) => {
+      .then(async (res) => {
         // Get the upid of process
-        this.createAxiosWithToken()
-          .post(
+        await this.createAxiosWithToken()
+          .get(
             config.app.node.concat(
               "/api2/json/nodes/",
-              newNode,
+              exerciseNode,
               "/tasks",
               "?vmid=",
               newId
             )
           )
           .then(async (res) => {
+            // There are different types when migrate: vncproxy as well as migrate
+            // so process has to wait until both are complete
+            const data = res.data.data;
             // Get status of migration process
             // Loop until status become stopped
-            const upid = res.data.upid;
-            let loop_process = true;
-            while (loop_process) {
-              this.createAxiosWithToken()
-                .post(
-                  config.app.node.concat(
-                    "/api2/json/nodes/",
-                    newNode,
-                    "/tasks/",
-                    upid,
-                    "/status"
+            for (let i = 0; i < data.length && data.endtime; i++) {
+              const currUpid = data[i].upid;
+              while (true) {
+                const loopProcess = await this.createAxiosWithToken()
+                  .get(
+                    config.app.node.concat(
+                      "/api2/json/nodes/",
+                      exerciseNode,
+                      "/tasks/",
+                      currUpid,
+                      "/log"
+                    )
                   )
-                )
-                .then((res) => {
-                  if (res.data.status === "stopped") {
-                    loop_process = false;
-                  }
-                });
-              // Wait for 1 second before looping
-              await new Promise((r) => setTimeout(r, 1000));
+                  .then(async (res) => {
+                    // Wait for 1 second before looping
+                    // await new Promise((r) => setTimeout(r, 1000));
+                    console.log(res.data);
+                    // const data = res.data.data;
+                    // console.log(data);
+                    // return (data.status === "stopped")? false:true;
+                  });
+                // if(loopProcess == false){
+                //   break;
+                // }
+                // Wait for 1 second before looping
+                await new Promise((r) => setTimeout(r, 1000));
+              }
             }
           });
       });
@@ -246,56 +263,62 @@ export const VirtualMachineService = {
    *
    * @param {string} vmid Virtual Machine ID
    * */
-  async cloneTemplate(vmid: string, newId: string): Promise<void> {
+  async cloneTemplate(
+    vmid: string,
+    exerciseNode: string,
+    newId: string
+  ): Promise<void> {
     // This part clones the exercise vm to newid
     await this.createAxiosWithToken()
       .post(
         config.app.node.concat(
           "/api2/json/nodes/",
-          config.app.nodename,
+          exerciseNode,
           "/qemu/",
           vmid,
-          "/clone?newid=",
+          "/clone",
+          "?full=true",
+          "&newid=",
           newId
         )
       )
       .then(async (res) => {
-        // Get the upid of process
-        this.createAxiosWithToken()
-          .post(
-            config.app.node.concat(
-              "/api2/json/nodes/",
-              config.app.nodename,
-              "/tasks",
-              "?vmid=",
-              newId
-            )
-          )
-          .then(async (res) => {
-            // Get status of migration process
-            // Loop until status become stopped
-            const upid = res.data.upid;
-            let loop_process = true;
-            while (loop_process) {
-              this.createAxiosWithToken()
-                .post(
-                  config.app.node.concat(
-                    "/api2/json/nodes/",
-                    config.app.nodename,
-                    "/tasks/",
-                    upid,
-                    "/status"
-                  )
-                )
-                .then((res) => {
-                  if (res.data.status === "stopped") {
-                    loop_process = false;
-                  }
-                });
-              // Wait for 1 second before looping
-              await new Promise((r) => setTimeout(r, 1000));
-            }
-          });
+        // // Get the upid of process
+        // this.createAxiosWithToken()
+        //   .get(
+        //     config.app.node.concat(
+        //       "/api2/json/nodes/",
+        //       exerciseNode,
+        //       "/tasks",
+        //       "?vmid=",
+        //       newId
+        //     )
+        //   )
+        //   .then(async (res) => {
+        //     // Get status of migration process
+        //     // Loop until status become stopped
+        //     const upid = res.data.upid;
+        //     let loop_process = true;
+        //     while (loop_process) {
+        //       this.createAxiosWithToken()
+        //         .post(
+        //           config.app.node.concat(
+        //             "/api2/json/nodes/",
+        //             config.app.nodename,
+        //             "/tasks/",
+        //             upid,
+        //             "/status"
+        //           )
+        //         )
+        //         .then((res) => {
+        //           if (res.data.status === "stopped") {
+        //             loop_process = false;
+        //           }
+        //         });
+        //       // Wait for 1 second before looping
+        //       await new Promise((r) => setTimeout(r, 1000));
+        //     }
+        //   });
       });
   },
 
@@ -306,23 +329,23 @@ export const VirtualMachineService = {
    * @param {string} exerciseId vmid of exercise Id
    * @return {string} return the node that the template should be cloned to
    */
-  async selectNodeLoad(exerciseId: string): Promise<Object> {
+  async selectNodeLoad(
+    exerciseId: string,
+    exerciseNode: string
+  ): Promise<Object> {
     // Gets the list of node (includes node name / cpu usage / disk avaliable)
     const node: object = [];
-    // This vm will be used for assigning new vmid so that it avoids vmid from
-    //both the database and the ones that are already in the system
-    const vm: string[] = [];
 
-    const axiosNode = this.getListofNodes();
-    for (let i = 0; i < axiosNode.length; i++) {
-      const currNode = axiosNode[i].node;
-      const currDisk = axiosNode[i].maxdisk - axiosNode[i].disk;
-      const currCPU = axiosNode[i].cpu;
+    const ListOfNodes = await this.getListofNodes();
+    for (let i = 0; i < ListOfNodes.length; i++) {
+      const currNode = ListOfNodes[i].node;
+      const currDisk = ListOfNodes[i].maxdisk - ListOfNodes[i].disk;
+      const currCPU = ListOfNodes[i].cpu;
 
-      const currVM: string[] = this.getListofVM(axiosNode[i].node);
-      for (let i = 0; i < currVM.length; i++) {
-        vm.push(currVM[i]);
-      }
+      const currVM: string[] = await this.getListOfRunningVM(
+        ListOfNodes[i].node
+      );
+      for (let i = 0; i < currVM.length; i++) {}
       node[i] = {
         node: currNode,
         disk: currDisk,
@@ -332,39 +355,44 @@ export const VirtualMachineService = {
     }
 
     // Get the size of template
-    const size = this.getSizeTemplate(exerciseId);
+    const size = await this.getSizeTemplate(exerciseId, exerciseNode);
+
+    // Since node is object, it does not have length
+    let keys = Object.keys(node);
 
     // Check each node disk storage size to see if template can be clones
     // Otherwise remove it from the array
-    for (let i = 0; i < Object.keys(node).length; i++) {
+    for (let i = 0; i < keys.length; i++) {
       if (size > node[i].disk) {
         delete node[i];
       }
     }
 
-    // If no storage is free, send error
-    if (Object.keys(node).length < 1) {
+    // // Update the keys after if node was deleted
+    keys = Object.keys(node);
+
+    // // If no storage is free, send error
+    if (keys.length < 1) {
       throw new InsufficientStorageException();
     }
 
-    // Check if the same number of VM's are running on each node
-    // If same, it needs to be checked against CPU usage
+    // // Check if the same number of VM's are running on each node
+    // // If same, it needs to be checked against CPU usage
     let sameNumVMRunning = true;
     let balanceNodeIndex = 0;
-    for (let i = 1; i < Object.keys(node).length; i++) {
+    for (let i = 1; i < keys.length; i++) {
       if (sameNumVMRunning == false) {
         if (node[balanceNodeIndex].vm.length > node[i].vm.length) {
           balanceNodeIndex = i;
         }
-      }
-      if (sameNumVMRunning) {
+      } else {
         if (node[balanceNodeIndex].vm.length != node[i].vm.length) {
           sameNumVMRunning = false;
         }
       }
     }
 
-    // If all the same number of running vm check by cpu usage
+    // // If all the same number of running vm check by cpu usage
     if (sameNumVMRunning) {
       for (let i = 1; Object.keys(node).length; i++) {
         if (node[balanceNodeIndex].cpu > node[i].cpu) {
@@ -374,7 +402,7 @@ export const VirtualMachineService = {
     }
 
     // Return the name of the least node and list of virtual machine
-    return [node[balanceNodeIndex].node, vm];
+    return [node[balanceNodeIndex].node];
   },
 
   /**
@@ -383,22 +411,26 @@ export const VirtualMachineService = {
    * @param {string} vmid The vmid of template
    * @return {any} size of the template
    */
-  getSizeTemplate(vmid: string): any {
-    return this.createAxiosWithToken()
-      .post(
+  async getSizeTemplate(vmid: string, nodeName: string): Promise<any> {
+    return await this.createAxiosWithToken()
+      .get(
         config.app.node.concat(
           "/api2/json/nodes/",
-          config.app.nodename,
+          nodeName,
           "/qemu/",
           vmid,
-          "config"
+          "/config"
         )
       )
       .then((res) => {
-        for (var key in res.data) {
-          //Checks for ide 0-3 scsi 0-30
+        const data = res.data.data;
+        const keys = Object.keys(data);
+        for (let i = 0; i < keys.length; i++) {
+          const key = keys[i];
+
+          // Check if the the key starts with ide or scsi
           if (key.includes("ide") || key.includes("scsi")) {
-            const split = res.data[key].split("size=");
+            const split = data[key].split("size=");
             if (split.length > 2) {
               continue;
             } else {
@@ -430,14 +462,12 @@ export const VirtualMachineService = {
    *
    * @returns {Object} returns node information of cluster
    */
-  getListofNodes(): Object {
-    let node: Object = null;
-    this.createAxiosWithToken()
-      .post(config.app.node.concat("/api2/json/nodes"))
+  async getListofNodes(): Promise<any> {
+    return await this.createAxiosWithToken()
+      .get(config.app.node.concat("/api2/json/nodes"))
       .then((res) => {
-        node = res.data;
+        return res.data.data;
       });
-    return node;
   },
 
   /**
@@ -445,26 +475,84 @@ export const VirtualMachineService = {
    *
    * @returns {string []} Returns list of vm
    */
-  getListofVM(): string[] {
-    const listVM: string[] = [];
+  async getListofUsedVMID(): Promise<string[]> {
+    let listVM: string[] = [];
 
     // Get list of nodes in cluster
-    const nodes = this.getListofNodes();
-
+    const nodes = await this.getListofNodes();
     // Per nodes get list of vm
     for (let i = 0; i < nodes.length; i++) {
       // Get list of vm of particular node
-      this.createAxiosWithToken()
-        .post(
-          config.app.node.concat("/api2/json/nodes", nodes[i].node, "/qemu")
-        )
-        .then((res) => {
-          for (let i = 0; i < res.data.length; i++) {
-            listVM.push(res.data[i].vmid);
-          }
-        });
+      listVM = [...listVM, ...(await this.getListOfVMInNode(nodes[i].node))];
+    }
+    return listVM;
+  },
+
+  /**
+   * Gets list of VM and container in particular node
+   *
+   * @param {string} node nodename of promox
+   * @returns return from api call
+   */
+  async getListOfVMInNode(node: string): Promise<any> {
+    const listVM = [];
+    await this.createAxiosWithToken()
+      .get(config.app.node.concat("/api2/json/nodes/", node, "/qemu"))
+      .then((res) => {
+        const data = res.data.data;
+        for (let i = 0; i < data.length; i++) {
+          listVM.push(data[i].vmid);
+        }
+      });
+
+    // Get list of container in particular node
+    await this.createAxiosWithToken()
+      .get(config.app.node.concat("/api2/json/nodes/", node, "/lxc"))
+      .then((res) => {
+        const data = res.data.data;
+        for (let i = 0; i < data.length; i++) {
+          listVM.push(data[i].vmid);
+        }
+      });
+    return listVM;
+  },
+
+  /**
+   * Gets the node where the exercise is located at
+   *
+   * @param {string} exerciseId Id of the exercise
+   * @returns
+   */
+  async getNodeOfExercise(exerciseId: string): Promise<string> {
+    const nodes = await this.getListofNodes();
+
+    let exerciseNode = "";
+    // Finds which node current has the vmid number equal to exerciseId
+    for (let i = 0; i < nodes.length; i++) {
+      const currNode = nodes[i].node;
+      const listOfVM = await this.getListOfVMInNode(currNode);
+      const found = listOfVM.find((element) => element == exerciseId);
+      if (found !== "undefined") exerciseNode = currNode;
     }
 
+    return exerciseNode;
+  },
+  /**
+   * Gets current running vmid of particular node
+   *
+   * @param {string} node proxmox node name
+   * @returns Array of vmid
+   */
+  async getListOfRunningVM(node: string): Promise<any> {
+    const listVM = [];
+    await this.createAxiosWithToken()
+      .get(config.app.node.concat("/api2/json/nodes/", node, "/qemu"))
+      .then((res) => {
+        const data = res.data.data;
+        for (let i = 0; i < data.length; i++) {
+          if (data[i].status == "running") listVM.push(data[i].vmid);
+        }
+      });
     return listVM;
   },
 

@@ -2,14 +2,28 @@ import { test } from "@japa/runner";
 import { VirtualMachineService } from "../app/services/VirtualMachineService";
 import { marked } from "marked";
 import fs from "fs";
+import { config } from "../config";
 
+console.log(config.app.token);
 test.group("Virtual Machine Service", () => {
-  // Passing clone
-  test("clone", ({ expect }) => {
-    const vmid = "102";
-    const newid = "1000";
-    VirtualMachineService.cloneTemplate(vmid, newid);
+  test("testing", async ({ expect }) => {
+    // const testing = await VirtualMachineService.test();
+    // const testing = await VirtualMachineService.migrateTemplate("105","cybernode1","cybernode2");
+    const testing = await VirtualMachineService.cloneTemplate(
+      "102",
+      "cybernode1",
+      "110"
+    );
+    console.log(testing);
+    expect(testing).toBe(0);
   });
+
+  // Passing clone
+  // test("clone", ({ expect }) => {
+  //   const vmid = "102";
+  //   const newid = "1000";
+  //   VirtualMachineService.cloneTemplate(vmid, newid);
+  // });
 
   // Fail clone
   // test("clone fail", ({ expect }, done: Function) => {
