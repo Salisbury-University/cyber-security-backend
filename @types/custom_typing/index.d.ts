@@ -1,4 +1,4 @@
-import { preference } from "@prisma/client";
+import { preference, VM } from "@prisma/client";
 
 export {};
 

@@ -8,8 +8,9 @@ router.use("/api/v1/auth", AuthMiddleware);
 
 import validate from "../http/middleware/ValidationMiddleware";
 import exerciseSchema from "../schema/ExerciseGetInfo";
+import getVMSchema from "../schema/ExerciseGetStart";
 
 router.get("/:id", validate(exerciseSchema), ExerciseController.getInfo);
-router.get("/:id/start", ExerciseController.requestVM);
+router.get("/:id/start", validate(getVMSchema), ExerciseController.requestVM);
 
 export default router;

@@ -30,15 +30,12 @@ export const ExerciseController = {
    */
   async requestVM(req: Request, res: Response, next: NextFunction) {
     try {
-      VirtualMachineService.checkRunningVM(req.user.uid);
-      let nodeName = "";
-      if (req.params.node) {
-        nodeName = req.params.node;
-      }
-      VirtualMachineService.createVM(
-        req.user.uid,
-        String(req.params.id),
-        nodeName
+      res.send(
+        await VirtualMachineService.createVM(
+          req.body.uid,
+          String(req.params.id),
+          req.body.node
+        )
       );
     } catch (e) {
       return next(e);

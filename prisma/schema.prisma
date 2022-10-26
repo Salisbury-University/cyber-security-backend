@@ -8,7 +8,8 @@ datasource db {
 }
 
 model VM {
-  user            String @unique
+  id            Int @id @default(autoincrement())
+  user            String
   node            String 
   vmId              String  
   exerciseId        String 
@@ -17,6 +18,8 @@ model VM {
   timeLimit       String 
   timeStart       DateTime   @default(now())
   timeEnd         DateTime  @default(now())
+  status          String    @default("stopped")
+  @@unique([user, exerciseId])
 }
 
 model Exercise {

@@ -23,39 +23,39 @@ export const VirtualMachineService = {
     user: string,
     exerciseId: string,
     nodeName: string = ""
-  ): Promise<void> {
+  ): Promise<VM> {
     try {
-      const exerciseNode = this.getNodeOfExercise(exerciseId);
+      const exerciseNode = await this.getNodeOfExercise(exerciseId);
 
       let newNode = "";
-      let listOfVM = [];
 
       // If nodeName is not empty then it is assigned from front end
       if (nodeName != "") {
         newNode = nodeName;
-        listOfVM = this.getListofUsedVMID();
       } else {
-        const load = this.selectNodeLoad(exerciseId, exerciseNode);
-        newNode = load[0];
-        listOfVM = load[1];
+        newNode = await this.selectNodeLoad(exerciseId, exerciseNode);
       }
 
+      const listOfVM = await this.getListofUsedVMID();
+
       // Assign new vmid depending on the current vm
-      const newId = await this.assignNewVMID(
+      const vmPrisma = await this.assignNewVMID(
         exerciseId,
         user,
         newNode,
         listOfVM
       );
-      this.cloneTemplate(exerciseId, exerciseNode, newId);
 
-      if (newNode !== config.app.nodename) {
-        this.migrateTemplate(newId, newNode, exerciseNode);
+      const newId = String(vmPrisma.vmId);
+      await this.cloneTemplate(exerciseId, exerciseNode, newId);
+
+      if (newNode !== exerciseNode) {
+        await this.migrateTemplate(newId, exerciseNode, newNode);
       }
 
-      this.startVM(newId, newNode);
-      // Wait for 30 sec OS to boot for guest agent to run
-      // await new Promise((r) => setTimeout(r, 30000));
+      await this.startVM(newId, newNode);
+
+      return vmPrisma;
     } catch (e) {
       return e;
     }
@@ -70,11 +70,13 @@ export const VirtualMachineService = {
    * @return {Promise<void | VirtualMachineConflictException>}
    * */
   async checkRunningVM(
-    user: string
+    user: string,
+    exerciseId: string
   ): Promise<void | VirtualMachineConflictException> {
     const VM = await prisma.vM.findFirst({
       where: {
         user: user,
+        exerciseId: exerciseId,
       },
     });
     // Throw exception if VM exists in database
@@ -92,19 +94,19 @@ export const VirtualMachineService = {
    * @param {string} user userId of current user
    * @param {string} newLoad name of the node
    * @param {string []} listOfVM list of vm to avoid when assigning vmid
-   * @return {number} newId to use for cloning
+   * @return {string} newId to use for cloning
    */
   async assignNewVMID(
     exerciseId: string,
     user: string,
     newLoad: string,
     listOfVM: string[]
-  ): Promise<number> {
+  ): Promise<VM> {
     let newId: number = minVMID;
 
     // Find the list number of VMID without range
     for (let i = minVMID; i <= maxVMID; i++) {
-      const found = listOfVM.find((element) => i);
+      const found = listOfVM.find((element) => element === String(i));
       if (found === undefined) {
         newId = i;
         break;
@@ -115,20 +117,51 @@ export const VirtualMachineService = {
     const metadata: Object = ExerciseService.getMetadata(exerciseId);
     const endTime: Date = this.getVMEndTime(metadata["timelimit"]);
 
-    // Create the to vmid so that it will be there
-    await prisma.vM.create({
-      data: {
+    const stringId = String(newId);
+
+    // Check if it already exist
+    const vmUser = await prisma.vM.findFirst({
+      where: {
         user: user,
-        vmId: String(newId),
-        node: newLoad,
         exerciseId: exerciseId,
-        ip: "",
-        port: "",
-        timeLimit: metadata["timelimit"],
-        timeEnd: endTime,
       },
     });
-    return newId;
+    if (vmUser === null) {
+      // Create the to vmid so that it will be there
+      return await prisma.vM.create({
+        data: {
+          user: user,
+          vmId: stringId,
+          node: newLoad,
+          exerciseId: exerciseId,
+          ip: "",
+          port: "",
+          timeLimit: metadata["timelimit"],
+          timeEnd: endTime,
+          status: "running",
+        },
+      });
+    } else {
+      return await prisma.vM.update({
+        where: {
+          user_exerciseId: {
+            user: user,
+            exerciseId: exerciseId,
+          },
+        },
+        data: {
+          user: user,
+          vmId: stringId,
+          node: newLoad,
+          exerciseId: exerciseId,
+          ip: "",
+          port: "",
+          timeLimit: metadata["timelimit"],
+          timeEnd: endTime,
+          status: "running",
+        },
+      });
+    }
   },
 
   /**
@@ -175,7 +208,7 @@ export const VirtualMachineService = {
    */
   startVM(vmid: string, node: string): void {
     this.createAxiosWithToken().post(
-      config.app.node.concat(
+      config.app.url.concat(
         "/api2/json/nodes/",
         node,
         "/qemu/",
@@ -199,7 +232,7 @@ export const VirtualMachineService = {
     // Migrate the vm to new node
     await this.createAxiosWithToken()
       .post(
-        config.app.node.concat(
+        config.app.url.concat(
           "/api2/json/nodes/",
           exerciseNode,
           "/qemu/",
@@ -210,116 +243,44 @@ export const VirtualMachineService = {
       )
       .then(async (res) => {
         // Get the upid of process
-        await this.createAxiosWithToken()
-          .get(
-            config.app.node.concat(
-              "/api2/json/nodes/",
-              exerciseNode,
-              "/tasks",
-              "?vmid=",
-              newId
-            )
-          )
-          .then(async (res) => {
-            // There are different types when migrate: vncproxy as well as migrate
-            // so process has to wait until both are complete
-            const data = res.data.data;
-            // Get status of migration process
-            // Loop until status become stopped
-            for (let i = 0; i < data.length && data.endtime; i++) {
-              const currUpid = data[i].upid;
-              while (true) {
-                const loopProcess = await this.createAxiosWithToken()
-                  .get(
-                    config.app.node.concat(
-                      "/api2/json/nodes/",
-                      exerciseNode,
-                      "/tasks/",
-                      currUpid,
-                      "/log"
-                    )
-                  )
-                  .then(async (res) => {
-                    // Wait for 1 second before looping
-                    // await new Promise((r) => setTimeout(r, 1000));
-                    console.log(res.data);
-                    // const data = res.data.data;
-                    // console.log(data);
-                    // return (data.status === "stopped")? false:true;
-                  });
-                // if(loopProcess == false){
-                //   break;
-                // }
-                // Wait for 1 second before looping
-                await new Promise((r) => setTimeout(r, 1000));
-              }
-            }
-          });
+        const upid = res.data.data;
+        await this.waitForProcess(upid, exerciseNode);
       });
   },
 
   /**
-   * Clones the Template to current Node
+   * Clones virtual machine template
    *
-   * @param {string} vmid Virtual Machine ID
-   * */
+   * @param {string} vmid virtual machine id
+   * @param {string} exerciseNode Node where the exercise exist
+   * @param {string} newId new virtual machine id
+   * @returns {string} exercise Id on success
+   */
   async cloneTemplate(
     vmid: string,
     exerciseNode: string,
     newId: string
-  ): Promise<void> {
+  ): Promise<string> {
     // This part clones the exercise vm to newid
     await this.createAxiosWithToken()
       .post(
-        config.app.node.concat(
+        config.app.url.concat(
           "/api2/json/nodes/",
           exerciseNode,
           "/qemu/",
           vmid,
           "/clone",
-          "?full=true",
+          "?full=1",
           "&newid=",
           newId
         )
       )
       .then(async (res) => {
-        // // Get the upid of process
-        // this.createAxiosWithToken()
-        //   .get(
-        //     config.app.node.concat(
-        //       "/api2/json/nodes/",
-        //       exerciseNode,
-        //       "/tasks",
-        //       "?vmid=",
-        //       newId
-        //     )
-        //   )
-        //   .then(async (res) => {
-        //     // Get status of migration process
-        //     // Loop until status become stopped
-        //     const upid = res.data.upid;
-        //     let loop_process = true;
-        //     while (loop_process) {
-        //       this.createAxiosWithToken()
-        //         .post(
-        //           config.app.node.concat(
-        //             "/api2/json/nodes/",
-        //             config.app.nodename,
-        //             "/tasks/",
-        //             upid,
-        //             "/status"
-        //           )
-        //         )
-        //         .then((res) => {
-        //           if (res.data.status === "stopped") {
-        //             loop_process = false;
-        //           }
-        //         });
-        //       // Wait for 1 second before looping
-        //       await new Promise((r) => setTimeout(r, 1000));
-        //     }
-        //   });
+        const upid = res.data.data;
+        await this.waitForProcess(upid, exerciseNode);
       });
+
+    return newId;
   },
 
   /**
@@ -332,7 +293,7 @@ export const VirtualMachineService = {
   async selectNodeLoad(
     exerciseId: string,
     exerciseNode: string
-  ): Promise<Object> {
+  ): Promise<string> {
     // Gets the list of node (includes node name / cpu usage / disk avaliable)
     const node: object = [];
 
@@ -368,16 +329,16 @@ export const VirtualMachineService = {
       }
     }
 
-    // // Update the keys after if node was deleted
+    // Update the keys after if node was deleted
     keys = Object.keys(node);
 
-    // // If no storage is free, send error
+    // If no storage is free, send error
     if (keys.length < 1) {
       throw new InsufficientStorageException();
     }
 
-    // // Check if the same number of VM's are running on each node
-    // // If same, it needs to be checked against CPU usage
+    // Check if the same number of VM's are running on each node
+    // If same, it needs to be checked against CPU usage
     let sameNumVMRunning = true;
     let balanceNodeIndex = 0;
     for (let i = 1; i < keys.length; i++) {
@@ -392,9 +353,9 @@ export const VirtualMachineService = {
       }
     }
 
-    // // If all the same number of running vm check by cpu usage
+    // If all the same number of running vm check by cpu usage
     if (sameNumVMRunning) {
-      for (let i = 1; Object.keys(node).length; i++) {
+      for (let i = 1; i < Object.keys(node).length; i++) {
         if (node[balanceNodeIndex].cpu > node[i].cpu) {
           balanceNodeIndex = i;
         }
@@ -402,7 +363,7 @@ export const VirtualMachineService = {
     }
 
     // Return the name of the least node and list of virtual machine
-    return [node[balanceNodeIndex].node];
+    return node[balanceNodeIndex].node;
   },
 
   /**
@@ -414,7 +375,7 @@ export const VirtualMachineService = {
   async getSizeTemplate(vmid: string, nodeName: string): Promise<any> {
     return await this.createAxiosWithToken()
       .get(
-        config.app.node.concat(
+        config.app.url.concat(
           "/api2/json/nodes/",
           nodeName,
           "/qemu/",
@@ -464,7 +425,7 @@ export const VirtualMachineService = {
    */
   async getListofNodes(): Promise<any> {
     return await this.createAxiosWithToken()
-      .get(config.app.node.concat("/api2/json/nodes"))
+      .get(config.app.url.concat("/api2/json/nodes"))
       .then((res) => {
         return res.data.data;
       });
@@ -497,21 +458,21 @@ export const VirtualMachineService = {
   async getListOfVMInNode(node: string): Promise<any> {
     const listVM = [];
     await this.createAxiosWithToken()
-      .get(config.app.node.concat("/api2/json/nodes/", node, "/qemu"))
+      .get(config.app.url.concat("/api2/json/nodes/", node, "/qemu"))
       .then((res) => {
         const data = res.data.data;
         for (let i = 0; i < data.length; i++) {
-          listVM.push(data[i].vmid);
+          listVM.push(String(data[i].vmid));
         }
       });
 
     // Get list of container in particular node
     await this.createAxiosWithToken()
-      .get(config.app.node.concat("/api2/json/nodes/", node, "/lxc"))
+      .get(config.app.url.concat("/api2/json/nodes/", node, "/lxc"))
       .then((res) => {
         const data = res.data.data;
         for (let i = 0; i < data.length; i++) {
-          listVM.push(data[i].vmid);
+          listVM.push(String(data[i].vmid));
         }
       });
     return listVM;
@@ -531,11 +492,12 @@ export const VirtualMachineService = {
     for (let i = 0; i < nodes.length; i++) {
       const currNode = nodes[i].node;
       const listOfVM = await this.getListOfVMInNode(currNode);
-      const found = listOfVM.find((element) => element == exerciseId);
-      if (found !== "undefined") exerciseNode = currNode;
+      for (let j = 0; j < listOfVM.length; j++) {
+        if (listOfVM[j] === exerciseId) {
+          return currNode;
+        }
+      }
     }
-
-    return exerciseNode;
   },
   /**
    * Gets current running vmid of particular node
@@ -546,7 +508,7 @@ export const VirtualMachineService = {
   async getListOfRunningVM(node: string): Promise<any> {
     const listVM = [];
     await this.createAxiosWithToken()
-      .get(config.app.node.concat("/api2/json/nodes/", node, "/qemu"))
+      .get(config.app.url.concat("/api2/json/nodes/", node, "/qemu"))
       .then((res) => {
         const data = res.data.data;
         for (let i = 0; i < data.length; i++) {
@@ -557,6 +519,37 @@ export const VirtualMachineService = {
   },
 
   /**
+   *
+   *
+   * @param {string} upid the unique process id
+   * @param {string} node node where the process is being used
+   */
+  async waitForProcess(upid: string, node: string): Promise<void> {
+    while (true) {
+      const loopProcess = await this.createAxiosWithToken()
+        .get(
+          config.app.url.concat(
+            "/api2/json/nodes/",
+            node,
+            "/tasks/",
+            upid,
+            "/status"
+          )
+        )
+        .then(async (res) => {
+          const data = res.data.data;
+          return data.status === "stopped" ? false : true;
+        });
+      if (loopProcess == false) {
+        break;
+      }
+      // Wait for 1 second before looping
+      await new Promise((r) => setTimeout(r, 1000));
+    }
+    await new Promise((r) => setTimeout(r, 3000));
+  },
+
+  /**
    * Force stop the running VM
    *
    * @param {string} vmid vmid of VM
@@ -564,13 +557,7 @@ export const VirtualMachineService = {
    */
   stopVM(vmid: string, node: string): void {
     this.createAxiosWithToken().post(
-      config.app.node.concat(
-        "/api2/json/",
-        node,
-        "/qemu/",
-        vmid,
-        "/status/stop"
-      )
+      config.app.url.concat("/api2/json/", node, "/qemu/", vmid, "/status/stop")
     );
   },
 
@@ -583,7 +570,7 @@ export const VirtualMachineService = {
   unlinkVM(vmid: string, node: string): void {
     this.createAxiosWithToken()
       .put(
-        config.app.node.concat(
+        config.app.url.concat(
           "/api2/json/",
           node,
           "/qemu/",
