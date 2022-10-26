@@ -9,19 +9,22 @@ export const ExerciseController = {
    * @param req {Request} Express request object
    * @param res {Response} Express response object
    * @param next {NextFunction} Express NextFunction (used for middleware)
-   * @throws {NotFoundException} File is Not found
+   *
    */
   getInfo(req: Request, res: Response, next: NextFunction) {
     try {
-      const dat = ExerciseService.fetchData(req.params.id);
-      res.send(dat);
+      const saveData = ExerciseService.fetchData(
+        req.params.exerciseID,
+        req.params.id
+      );
+      res.send(saveData);
     } catch (e) {
       return next(e);
     }
   },
 
   /**
-   * Handles the fetchData request
+   * Handles the start vm request
    *
    * @param req {Request} Express request object
    * @param res {Response} Express response object
@@ -36,6 +39,23 @@ export const ExerciseController = {
           String(req.params.id),
           req.body.node
         )
+      );
+    } catch (e) {
+      return next(e);
+    }
+  },
+  /**
+   * Handles the getStatus request
+   *
+   * @param req {Request} Express request object
+   * @param res {Response} Express response object
+   * @param next {NextFunction} Express NextFunction (used for middleware)
+   */
+  getConst(req: Request, res: Response, next: NextFunction) {
+    try {
+      const saveStatus = ExerciseService.getStatus(
+        req.params.uid,
+        req.params.exerciseID
       );
     } catch (e) {
       return next(e);

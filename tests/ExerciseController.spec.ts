@@ -15,6 +15,7 @@ test.group("ValidationMiddleware", () => {
     Accept: "application/json",
   };
 
+  //getInfo from file and checks to see if its metadat is in the file
   test("/getInfo", async ({ expect }, done: Function) => {
     request(app)
       .get("/api/v1/exercise/how-to-parse-markdown")
@@ -27,6 +28,7 @@ test.group("ValidationMiddleware", () => {
       });
   }).waitForDone();
 
+  //Fails in getting metadata from file.
   test("/getInfo/Failed", async ({ expect }, done: Function) => {
     request(app)
       .get("/api/v1/exercise/Failed")

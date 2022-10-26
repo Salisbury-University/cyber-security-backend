@@ -13,7 +13,7 @@ test.group("AuthController", () => {
    */
   test("/Login", async ({ expect }, done: Function) => {
     request(app)
-      .post("/auth/login")
+      .post("/api/v1/auth/login")
       .send(body)
       .set("Accept", "application/json")
       .expect(200)
@@ -29,7 +29,7 @@ test.group("AuthController", () => {
    */
   test("/LoginFailed", async ({ expect }, done: Function) => {
     request(app)
-      .post("/auth/login")
+      .post("/api/v1/auth/login")
       .send({
         username: "aaa",
         password: "sgs",

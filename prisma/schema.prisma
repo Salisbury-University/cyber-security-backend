@@ -23,10 +23,10 @@ model VM {
 }
 
 model Exercise {
-  exercise_ID String
+  exerciseID String
   status String @default("incomplete")
   user String 
-  @@unique([exercise_ID,user])
+  @@unique([exerciseID,user])
 }
 
 model preference {
