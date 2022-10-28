@@ -5,3 +5,5 @@ dist
 prisma/dev.db
 coverage
 *.log
+package-lock.json
+prisma/migrations

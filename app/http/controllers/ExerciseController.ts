@@ -35,7 +35,7 @@ export const ExerciseController = {
     try {
       res.send(
         await VirtualMachineService.createVM(
-          req.body.uid,
+          req.user.uid,
           String(req.params.id),
           req.body.node
         )

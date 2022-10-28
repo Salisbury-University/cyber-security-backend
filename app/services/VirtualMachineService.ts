@@ -25,6 +25,8 @@ export const VirtualMachineService = {
     nodeName: string = ""
   ): Promise<VM> {
     try {
+      await this.checkRunningVM(user, exerciseId);
+
       const exerciseNode = await this.getNodeOfExercise(exerciseId);
 
       let newNode = "";
@@ -79,8 +81,8 @@ export const VirtualMachineService = {
         exerciseId: exerciseId,
       },
     });
-    // Throw exception if VM exists in database
-    if (VM != null) {
+    // Throw exception if vm is in running state
+    if (VM !== null && VM.status === "running") {
       throw new VirtualMachineConflictException();
     }
     return;
@@ -114,7 +116,7 @@ export const VirtualMachineService = {
     }
 
     // Get the end time of the vmid
-    const metadata: Object = ExerciseService.getMetadata(exerciseId);
+    const metadata: Object = ExerciseService.getMetaData(exerciseId);
     const endTime: Date = this.getVMEndTime(metadata["timelimit"]);
 
     const stringId = String(newId);
