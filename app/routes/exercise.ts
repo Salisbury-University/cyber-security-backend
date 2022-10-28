@@ -13,6 +13,13 @@ import getVMSchema from "../schema/ExerciseGetStart";
 // Gets the content and metadata of exercise
 router.get("/:id", validate(exerciseSchema), ExerciseController.getInfo);
 
+// Gets the status of the exercise
+router.get(
+  "/:id/status",
+  validate(exerciseSchema),
+  ExerciseController.getConst
+);
+
 // Starts the virtual machine
 router.post("/:id/start", validate(getVMSchema), ExerciseController.requestVM);
 

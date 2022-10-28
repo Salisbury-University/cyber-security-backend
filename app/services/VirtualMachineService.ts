@@ -25,7 +25,8 @@ export const VirtualMachineService = {
     nodeName: string = ""
   ): Promise<VM> {
     try {
-      await this.checkRunningVM(user, exerciseId);
+      // Checks if the user already have vm running
+      await this.checkRunningVM(user);
 
       const exerciseNode = await this.getNodeOfExercise(exerciseId);
 
@@ -72,13 +73,11 @@ export const VirtualMachineService = {
    * @return {Promise<void | VirtualMachineConflictException>}
    * */
   async checkRunningVM(
-    user: string,
-    exerciseId: string
+    user: string
   ): Promise<void | VirtualMachineConflictException> {
     const VM = await prisma.vM.findFirst({
       where: {
         user: user,
-        exerciseId: exerciseId,
       },
     });
     // Throw exception if vm is in running state
