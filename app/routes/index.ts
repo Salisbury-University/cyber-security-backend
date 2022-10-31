@@ -32,5 +32,9 @@ router.use("/api/v1/preference", preferenceRoute);
 
 import exerciseRoute from "./exercises";
 router.use("/api/v1/exercises", exerciseRoute);
+
+import searchRoute from "./search";
+router.use("/api/v1/search", searchRoute);
+
 // Export the router
 export default router;

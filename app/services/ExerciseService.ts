@@ -36,7 +36,7 @@ export const ExerciseService = {
    * @return {Object} the MetaData being returned
    * @throws {NotFoundException} File is Not found exception handler
    */
-  getMetaData(exerciseID: string): Object {
+  getMetaData(exerciseID: string): any {
     const fileLocation = "exercises/" + exerciseID + ".md";
     try {
       const fileContent = fs.readFileSync(fileLocation, "utf8");

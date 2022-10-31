@@ -12,4 +12,9 @@ declare global {
   type PreferenceData = {
     preference: preference;
   };
+
+  type searchResult = {
+    search: string;
+    results: any;
+  };
 }
