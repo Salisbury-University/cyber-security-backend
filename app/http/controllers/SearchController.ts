@@ -10,6 +10,6 @@ export const SearchController = {
    * @param next {NextFunction} Express NextFunction (used for middleware)
    */
   async search(req: Request, res: Response, next: NextFunction) {
-    res.send(SearchService.searchExercise(req.params.query));
+    res.send(SearchService.searchExercise(String(req.query.search)));
   },
 };

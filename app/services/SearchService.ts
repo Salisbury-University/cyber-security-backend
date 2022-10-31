@@ -5,7 +5,7 @@ import { ExercisesService } from "./ExercisesService";
  * All of the functions regarding search route
  */
 export const SearchService = {
-  searchExercise(param: string): searchResult {
+  searchExercise(param: string): any {
     // Make it so that it is not case sensitive
     const searchParam = param.toLowerCase();
     // Get all the list of exerccises
@@ -16,34 +16,51 @@ export const SearchService = {
     for (let i = 0; i < exercises.length; i++) {
       const currExercise = exercises[i];
 
-      // Get the metadata of exercise and search for the param for title
       const metadata = ExerciseService.getMetaData(currExercise);
-      const mIndex = metadata.title.toLowerCase().indexOf(searchParam);
       let match = "";
-      // Add the metadata to the return array
-      if (mIndex !== -1) {
-        match = metadata.title;
-      } else {
+      while (true) {
+        // Check the title
+        const mIndex = metadata.title.toLowerCase().indexOf(searchParam);
+        if (mIndex !== -1) {
+          match = metadata.title;
+          break;
+        }
+
+        // Check the description
+        const dIndex = metadata.description.toLowerCase().indexOf(searchParam);
+        if (dIndex !== -1) {
+          match = metadata.description;
+          break;
+        }
+
         // Check the content for the words
         const content = ExerciseService.getContent(currExercise);
 
         // Split by paragraph
         const paragraphs = content.split("\n");
-        for (let j = 0; j > paragraphs.length; j++) {
-          const cIndex = paragraphs[i].toLowerCase().indexOf(searchParam);
+        for (let j = 0; j < paragraphs.length; j++) {
+          let currParagraph = paragraphs[j];
 
+          // Get rid of all the html format
+          const reg = new RegExp("<.*?>");
+          currParagraph.replace(reg, "");
+
+          const cIndex = currParagraph.toLowerCase().indexOf(searchParam);
           if (cIndex !== -1) {
-            match = paragraphs[i];
+            match = currParagraph;
             break;
           }
         }
-      }
 
+        // Break out if none matches
+        break;
+      }
       // If there is no match continue to next
       if (match === "") {
         continue;
       }
 
+      match == "failed";
       // Put the data in format
       const data = {
         id: currExercise,
