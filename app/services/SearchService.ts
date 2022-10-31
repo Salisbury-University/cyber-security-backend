@@ -5,9 +5,17 @@ import { ExercisesService } from "./ExercisesService";
  * All of the functions regarding search route
  */
 export const SearchService = {
-  searchExercise(param: string): any {
+  /**
+   * Searches through the exercises and find the exercise with the query in them
+   * Checks both metadata and contents
+   * Non case sensitive
+   *
+   * @param {string} param query from the user
+   * @returns {searchResult} results of the search from the exercises
+   */
+  searchExercise(query: string): searchResult {
     // Make it so that it is not case sensitive
-    const searchParam = param.toLowerCase();
+    const searchParam = query.toLowerCase();
     // Get all the list of exerccises
     const exercises: string[] = ExercisesService.fetchList();
 
@@ -72,7 +80,7 @@ export const SearchService = {
 
     // Format the data to meet the return
     const dataFormat = {
-      search: param,
+      search: query,
       results: searchArray,
     };
 
