@@ -1,8 +1,8 @@
 import { marked } from "marked";
-import NotFoundException from "../exceptions/NotFoundException";
-import fs from "fs";
-import { string } from "zod";
 import { PrismaClient } from "@prisma/client";
+import { ExercisesService } from "./ExercisesService";
+import fs from "fs";
+import NotFoundException from "../exceptions/NotFoundException";
 import UnprocessableEntityException from "../exceptions/UnprocessableEntityException";
 
 const prisma = new PrismaClient();
@@ -165,6 +165,18 @@ export const ExerciseService = {
       return JSON.parse(JSON.stringify(display));
     } catch (e) {
       throw new NotFoundException();
+    }
+  },
+
+  findFilename(exerciseID: string): string {
+    const files = ExercisesService.getAllExerciseFilename();
+    for (let i = 0; i < files.length; i++) {
+      const currFile = files[i];
+
+      const metadata = this.getMetaData(currFile);
+      if (metadata.vmid === exerciseID) {
+        return currFile;
+      }
     }
   },
 };
