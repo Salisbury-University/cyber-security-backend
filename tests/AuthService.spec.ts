@@ -54,7 +54,7 @@ test.group("AuthService", () => {
    * Testing JWT decode function.
    */
   test("JWT success decode", ({ expect }) => {
-    expect(AuthService.decodeToken(TOKEN)).toMatchObject(DATA);
+    expect(AuthService.verifyToken(TOKEN)).toMatchObject(DATA);
   });
 
   /**
@@ -63,7 +63,7 @@ test.group("AuthService", () => {
   test("JWT malformed token", async ({ expect }, done: Function) => {
     const RANDOM = TOKEN.concat("ljas;dlkfj;al");
     try {
-      await AuthService.decodeToken(RANDOM);
+      await AuthService.verifyToken(RANDOM);
     } catch (e) {
       expect(e).toBeInstanceOf(JwtMalformedException);
       done();
@@ -76,7 +76,7 @@ test.group("AuthService", () => {
   test("JWT empty token", async ({ expect }, done: Function) => {
     const EMPTY_TOKEN: string = "";
     try {
-      await AuthService.decodeToken(EMPTY_TOKEN);
+      await AuthService.verifyToken(EMPTY_TOKEN);
     } catch (e) {
       expect(e).toBeInstanceOf(JwtMalformedException);
       done();
@@ -94,7 +94,7 @@ test.group("AuthService", () => {
     const IATTOKEN = jwt.sign(IATDATA, SECRET_TOKEN);
 
     try {
-      await AuthService.decodeToken(IATTOKEN);
+      await AuthService.verifyToken(IATTOKEN);
     } catch (e) {
       expect(e).toBeInstanceOf(JwtMalformedException);
       done();
