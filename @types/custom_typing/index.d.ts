@@ -7,6 +7,7 @@ declare global {
   type User = {
     uid: string;
     iat: number;
+    exp: number;
   };
 
   type PreferenceData = {
