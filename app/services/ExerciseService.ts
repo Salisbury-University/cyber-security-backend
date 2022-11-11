@@ -11,12 +11,13 @@ export const ExerciseService = {
   /**
    * Gets the content from the file
    *
-   * @param {string} exerciseID id for an exercise
+   * @param {string} exerciseTitle title of the exercise
    * @return {string} the content being returned
    * @throws {NotFoundException} File is Not found exception handler
    */
-  getContent(exerciseID: string): string {
-    const fileLocation = "exercises/" + exerciseID + ".md";
+  getContent(exerciseTitle: string): string {
+    const filename = this.findFilename(exerciseTitle);
+    const fileLocation = "exercises/" + filename + ".md";
     try {
       const fileContent = fs.readFileSync(fileLocation, "utf8");
       const form = marked.parse(fileContent);
@@ -32,12 +33,13 @@ export const ExerciseService = {
   /**
    * Gets the MetaData from the file
    *
-   * @param {string} exerciseID id for an exercise
+   * @param {string} exerciseTitle title of the exercise
    * @return {Object} the MetaData being returned
    * @throws {NotFoundException} File is Not found exception handler
    */
-  getMetaData(exerciseID: string): Object {
-    const fileLocation = "exercises/" + exerciseID + ".md";
+  getMetaData(exerciseTitle: string): Object {
+    const filename = this.findFilename(exerciseTitle);
+    const fileLocation = "exercises/" + filename + ".md";
     try {
       const fileContent = fs.readFileSync(fileLocation, "utf8");
       const lexer = marked.lexer(fileContent);
@@ -69,7 +71,7 @@ export const ExerciseService = {
   /**
    * Gets DataType and splits it up
    *
-   * @param {string} exerciseID id for an exercise
+   * @param {string} s string to conver to datatype
    * @return {any} the data parsed being returned
    */
   getDataType(s: string): any {
@@ -101,14 +103,17 @@ export const ExerciseService = {
   /**
    * gets status of the exercise
    *
-   * @param {string} exerciseID id for an exercise
+   * @param {string} exerciseTitle id for an exercise
    * @return {JSON} the JSON being returned
    * @throws {NotFoundException} File is Not found exception handler
    */
-  async getStatus(uid: string, exerciseID: string): Promise<String | boolean> {
+  async getStatus(
+    uid: string,
+    exerciseTitle: string
+  ): Promise<String | boolean> {
     const exerciseStatus = await prisma.exercise.findFirst({
       where: {
-        exerciseID: exerciseID,
+        exerciseID: exerciseTitle,
         user: uid,
       },
     });
@@ -122,19 +127,19 @@ export const ExerciseService = {
   /**
    * creates a Database.
    *
-   * @param {string} exerciseID id for an exercise
+   * @param {string} exerciseTitle id for an exercise
    * @return {JSON} the JSON being returned
    * @throws {UnprocessableEntityException} Contains a default error message and sets the HTTP response status
    */
   async createDB(
     uid: string,
-    exerciseID: string,
+    exerciseTitle: string,
     status: string = "incomplete"
   ): Promise<void | UnprocessableEntityException> {
     try {
       const user = await prisma.exercise.create({
         data: {
-          exerciseID: exerciseID,
+          exerciseID: exerciseTitle,
           user: uid,
           status: status,
         },
@@ -147,15 +152,15 @@ export const ExerciseService = {
   /**
    * Fetches content, metadata, and status.
    *
-   * @param {string} exerciseID id for an exercise
+   * @param {string} exerciseTitle id for an exercise
    * @return {JSON} the JSON being returned
    * @throws {NotFoundException} File is Not found exception handler
    */
-  fetchData(uid: string, exerciseID: string): string {
+  fetchData(uid: string, exerciseTitle: string): string {
     try {
-      const content = this.getContent(exerciseID);
-      const metadata = this.getMetaData(exerciseID);
-      const status = this.getStatus(uid, exerciseID);
+      const content = this.getContent(exerciseTitle);
+      const metadata = this.getMetaData(exerciseTitle);
+      const status = this.getStatus(uid, exerciseTitle);
       const display = {};
 
       display["content"] = content;
@@ -168,13 +173,13 @@ export const ExerciseService = {
     }
   },
 
-  findFilename(exerciseID: string): string {
+  findFilename(exerciseTitle: string): string {
     const files = ExercisesService.getAllExerciseFilename();
     for (let i = 0; i < files.length; i++) {
       const currFile = files[i];
 
       const metadata = this.getMetaData(currFile);
-      if (metadata.vmid === exerciseID) {
+      if (metadata.title === exerciseTitle) {
         return currFile;
       }
     }
