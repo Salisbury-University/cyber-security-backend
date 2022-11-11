@@ -30,7 +30,7 @@ export const ExerciseController = {
    * @param next {NextFunction} Express NextFunction (used for middleware)
    *
    */
-  getConst(req: Request, res: Response, next: NextFunction) {
+  getStatusRequest(req: Request, res: Response, next: NextFunction) {
     try {
       const saveStatus = ExerciseService.getStatus(
         req.params.uid,
