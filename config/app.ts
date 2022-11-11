@@ -7,12 +7,13 @@ export default {
 	*/
   port: process.env.PORT ? process.env.PORT : 3000,
   ldap: process.env.LDAP ? process.env.LDAP : "",
-  ticket_id: process.env.TICKET_ID ? process.env.TICKET_ID : "",
-  ticket_uuid: process.env.TICKET_UUID ? process.env.TICKET_UUID : "",
-  url: process.env.URL ? process.env.URL : "",
+  suNodes1: process.env.nodes
+    ? process.env.nodes.split("[")[1].split("]")[0].split[","]
+    : [],
+  nodeUrl: process.env.NODEURL ? process.env.NODEURL : "",
   token: "PVEAPIToken=".concat(
-    process.env.TICKET_ID,
+    process.env.TICKETID,
     "=",
-    process.env.TICKET_UUID
+    process.env.TICKETUUID
   ),
 };

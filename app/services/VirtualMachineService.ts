@@ -31,9 +31,13 @@ export const VirtualMachineService = {
       const exerciseNode = await this.getNodeOfExercise(exerciseId);
 
       let newNode = "";
-
+      let verified = false;
       // If nodeName is not empty then it is assigned from front end
       if (nodeName != "") {
+        verified = this.verifyNode(nodeName);
+      }
+
+      if (verified) {
         newNode = nodeName;
       } else {
         newNode = await this.selectNodeLoad(exerciseId, exerciseNode);
@@ -129,7 +133,7 @@ export const VirtualMachineService = {
     });
     if (vmUser === null) {
       // Create the to vmid so that it will be there
-      return await prisma.vM.create({
+      return await prisma.vm.create({
         data: {
           user: user,
           vmId: stringId,
@@ -209,7 +213,7 @@ export const VirtualMachineService = {
    */
   startVM(vmid: string, node: string): void {
     this.createAxiosWithToken().post(
-      config.app.url.concat(
+      config.app.nodeUrl.concat(
         "/api2/json/nodes/",
         node,
         "/qemu/",
@@ -233,7 +237,7 @@ export const VirtualMachineService = {
     // Migrate the vm to new node
     await this.createAxiosWithToken()
       .post(
-        config.app.url.concat(
+        config.app.nodeUrl.concat(
           "/api2/json/nodes/",
           exerciseNode,
           "/qemu/",
@@ -265,7 +269,7 @@ export const VirtualMachineService = {
     // This part clones the exercise vm to newid
     await this.createAxiosWithToken()
       .post(
-        config.app.url.concat(
+        config.app.nodeUrl.concat(
           "/api2/json/nodes/",
           exerciseNode,
           "/qemu/",
@@ -376,7 +380,7 @@ export const VirtualMachineService = {
   async getSizeTemplate(vmid: string, nodeName: string): Promise<any> {
     return await this.createAxiosWithToken()
       .get(
-        config.app.url.concat(
+        config.app.nodeUrl.concat(
           "/api2/json/nodes/",
           nodeName,
           "/qemu/",
@@ -426,7 +430,7 @@ export const VirtualMachineService = {
    */
   async getListofNodes(): Promise<any> {
     return await this.createAxiosWithToken()
-      .get(config.app.url.concat("/api2/json/nodes"))
+      .get(config.app.nodeUrl.concat("/api2/json/nodes"))
       .then((res) => {
         return res.data.data;
       });
@@ -459,7 +463,7 @@ export const VirtualMachineService = {
   async getListOfVMInNode(node: string): Promise<any> {
     const listVM = [];
     await this.createAxiosWithToken()
-      .get(config.app.url.concat("/api2/json/nodes/", node, "/qemu"))
+      .get(config.app.nodeUrl.concat("/api2/json/nodes/", node, "/qemu"))
       .then((res) => {
         const data = res.data.data;
         for (let i = 0; i < data.length; i++) {
@@ -469,7 +473,7 @@ export const VirtualMachineService = {
 
     // Get list of container in particular node
     await this.createAxiosWithToken()
-      .get(config.app.url.concat("/api2/json/nodes/", node, "/lxc"))
+      .get(config.app.nodeUrl.concat("/api2/json/nodes/", node, "/lxc"))
       .then((res) => {
         const data = res.data.data;
         for (let i = 0; i < data.length; i++) {
@@ -509,7 +513,7 @@ export const VirtualMachineService = {
   async getListOfRunningVM(node: string): Promise<any> {
     const listVM = [];
     await this.createAxiosWithToken()
-      .get(config.app.url.concat("/api2/json/nodes/", node, "/qemu"))
+      .get(config.app.nodeUrl.concat("/api2/json/nodes/", node, "/qemu"))
       .then((res) => {
         const data = res.data.data;
         for (let i = 0; i < data.length; i++) {
@@ -529,7 +533,7 @@ export const VirtualMachineService = {
     while (true) {
       const loopProcess = await this.createAxiosWithToken()
         .get(
-          config.app.url.concat(
+          config.app.nodeUrl.concat(
             "/api2/json/nodes/",
             node,
             "/tasks/",
@@ -558,7 +562,13 @@ export const VirtualMachineService = {
    */
   stopVM(vmid: string, node: string): void {
     this.createAxiosWithToken().post(
-      config.app.url.concat("/api2/json/", node, "/qemu/", vmid, "/status/stop")
+      config.app.nodeUrl.concat(
+        "/api2/json/",
+        node,
+        "/qemu/",
+        vmid,
+        "/status/stop"
+      )
     );
   },
 
@@ -571,7 +581,7 @@ export const VirtualMachineService = {
   unlinkVM(vmid: string, node: string): void {
     this.createAxiosWithToken()
       .put(
-        config.app.url.concat(
+        config.app.nodeUrl.concat(
           "/api2/json/",
           node,
           "/qemu/",
@@ -580,5 +590,20 @@ export const VirtualMachineService = {
         )
       )
       .catch((error) => {});
+  },
+
+  /**
+   * Verify that the node is in the whitelist of nodes
+   *
+   * @param {string} node   - Node from the user
+   * @returns {boolean}     - Returns true if it is in whitelist otherwise return false
+   */
+  verifyNode(node: string): boolean {
+    config.app.whiteListNodes.array.forEach((element) => {
+      if (element === node) {
+        return true;
+      }
+    });
+    return false;
   },
 };
