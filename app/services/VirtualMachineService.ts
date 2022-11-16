@@ -82,7 +82,7 @@ export const VirtualMachineService = {
   async checkRunningVM(
     user: string
   ): Promise<void | VirtualMachineConflictException> {
-    const VM = await prisma.VM.findFirst({
+    const VM = await prisma.vM.findFirst({
       where: {
         user: user,
       },
@@ -128,7 +128,7 @@ export const VirtualMachineService = {
     const stringId = String(newId);
 
     // Check if it already exist
-    const vmUser = await prisma.VM.findFirst({
+    const vmUser = await prisma.vM.findFirst({
       where: {
         user: user,
         exerciseId: exerciseId,
@@ -136,7 +136,7 @@ export const VirtualMachineService = {
     });
     if (vmUser === null) {
       // Create the to vmid so that it will be there
-      return await prisma.VM.create({
+      return await prisma.vM.create({
         data: {
           user: user,
           vmId: stringId,
@@ -150,7 +150,7 @@ export const VirtualMachineService = {
         },
       });
     } else {
-      return await prisma.VM.update({
+      return await prisma.vM.update({
         where: {
           user_exerciseId: {
             user: user,
@@ -602,7 +602,7 @@ export const VirtualMachineService = {
    * @returns {boolean}     - Returns true if it is in whitelist otherwise return false
    */
   verifyNode(node: string): boolean {
-    config.app.whiteListNodes.array.forEach((element) => {
+    config.app.anton.array.forEach((element) => {
       if (element === node) {
         return true;
       }
