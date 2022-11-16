@@ -32,14 +32,17 @@ export const VirtualMachineService = {
 
       let newNode = "";
       let verified = false;
+
       // If nodeName is not empty then it is assigned from front end
       if (nodeName != "") {
         verified = this.verifyNode(nodeName);
       }
 
       if (verified) {
+        // If verified, set the nodename to be the same
         newNode = nodeName;
       } else {
+        // If not do load balancing
         newNode = await this.selectNodeLoad(exerciseId, exerciseNode);
       }
 
@@ -79,7 +82,7 @@ export const VirtualMachineService = {
   async checkRunningVM(
     user: string
   ): Promise<void | VirtualMachineConflictException> {
-    const VM = await prisma.vM.findFirst({
+    const VM = await prisma.VM.findFirst({
       where: {
         user: user,
       },
@@ -125,7 +128,7 @@ export const VirtualMachineService = {
     const stringId = String(newId);
 
     // Check if it already exist
-    const vmUser = await prisma.vM.findFirst({
+    const vmUser = await prisma.VM.findFirst({
       where: {
         user: user,
         exerciseId: exerciseId,
@@ -133,7 +136,7 @@ export const VirtualMachineService = {
     });
     if (vmUser === null) {
       // Create the to vmid so that it will be there
-      return await prisma.vm.create({
+      return await prisma.VM.create({
         data: {
           user: user,
           vmId: stringId,
@@ -147,7 +150,7 @@ export const VirtualMachineService = {
         },
       });
     } else {
-      return await prisma.vM.update({
+      return await prisma.VM.update({
         where: {
           user_exerciseId: {
             user: user,
@@ -173,7 +176,7 @@ export const VirtualMachineService = {
    * Get the endtime of exercise
    *
    * @param {string} timeLimit Timelimit in xxhxxmxxs
-   * @returns {Date}
+   * @returns {Date} Get epoch end time
    */
   getVMEndTime(timeLimit: string): Date {
     const lowerCaseTime = timeLimit.toLowerCase();
@@ -377,7 +380,7 @@ export const VirtualMachineService = {
    * @param {string} vmid The vmid of template
    * @return {any} size of the template
    */
-  async getSizeTemplate(vmid: string, nodeName: string): Promise<any> {
+  async getSizeTemplate(vmid: string, nodeName: string): Promise<Number> {
     return await this.createAxiosWithToken()
       .get(
         config.app.nodeUrl.concat(

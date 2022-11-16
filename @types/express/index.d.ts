@@ -1,5 +1,3 @@
-import { VM } from ".prisma/client";
-
 export {};
 
 declare global {

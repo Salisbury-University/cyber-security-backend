@@ -7,7 +7,11 @@ export default {
 	*/
   port: process.env.PORT ? process.env.PORT : 3000,
   ldap: process.env.LDAP ? process.env.LDAP : "",
-  suNodes1: process.env.nodes
+  /**
+   * Assuming that the nodes from the environment will be array,
+   * This will allow the cluster to be scalable
+   */
+  anton: process.env.nodes
     ? process.env.nodes.split("[")[1].split("]")[0].split[","]
     : [],
   nodeUrl: process.env.NODEURL ? process.env.NODEURL : "",

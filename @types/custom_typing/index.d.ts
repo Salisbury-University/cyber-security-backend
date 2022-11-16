@@ -12,4 +12,8 @@ declare global {
   type PreferenceData = {
     preference: preference;
   };
+
+  type VirtualMachineData = {
+    VM: VM;
+  };
 }
