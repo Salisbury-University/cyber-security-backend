@@ -71,10 +71,10 @@ export const ExerciseService = {
   /**
    * Gets DataType and splits it up
    *
-   * @param {string} s string to conver to datatype
+   * @param {string} dataString string to convert to corresponding datatype
    * @return {any} the data parsed being returned
    */
-  getDataType(s: string): any {
+  getDataType(dataString: string): any {
     if (s.startsWith("{") && s.endsWith("}")) {
       return Object(s);
     } else if (s.indexOf("/") !== -1 && !isNaN(Date.parse(s))) {
@@ -103,7 +103,7 @@ export const ExerciseService = {
   /**
    * gets status of the exercise
    *
-   * @param {string} exerciseTitle id for an exercise
+   * @param {string} exerciseTitle title of the exercise
    * @return {JSON} the JSON being returned
    * @throws {NotFoundException} File is Not found exception handler
    */
@@ -127,7 +127,7 @@ export const ExerciseService = {
   /**
    * creates a Database.
    *
-   * @param {string} exerciseTitle id for an exercise
+   * @param {string} exerciseTitle title of the exercise
    * @return {JSON} the JSON being returned
    * @throws {UnprocessableEntityException} Contains a default error message and sets the HTTP response status
    */
@@ -152,7 +152,7 @@ export const ExerciseService = {
   /**
    * Fetches content, metadata, and status.
    *
-   * @param {string} exerciseTitle id for an exercise
+   * @param {string} exerciseTitle title of the exercise
    * @return {JSON} the JSON being returned
    * @throws {NotFoundException} File is Not found exception handler
    */
