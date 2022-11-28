@@ -1,6 +1,5 @@
 import { test } from "@japa/runner";
 import NotFoundException from "../app/exceptions/NotFoundException";
-import UnprocessableEntityException from "../app/exceptions/UnprocessableEntityException";
 import { ExercisesService } from "../app/services/ExercisesService";
 
 test.group("ExercisesService", () => {
