@@ -20,9 +20,9 @@ const deleteExercise = async (userID: string, exerciseID: string) => {
 //gets metadata then displays it
 test.group("ExerciseService", () => {
   test("/getMetaData", async ({ expect }, done: Function) => {
-    var metaData = ExerciseService.getMetaData("how-to-parse-markdown");
+    var metadata = ExerciseService.getMetadata("how-to-parse-markdown");
 
-    var json = JSON.parse(JSON.stringify(metaData));
+    var json = JSON.parse(JSON.stringify(metadata));
     expect(json.title).toMatch("How to parse markdown");
     done();
   }).waitForDone();
@@ -30,7 +30,7 @@ test.group("ExerciseService", () => {
   //fails in getting the metadata
   test("/getMetaData/Failed", async ({ expect }, done: Function) => {
     try {
-      ExerciseService.getMetaData("Failed");
+      ExerciseService.getMetadata("Failed");
     } catch (e) {
       expect(e).toBeInstanceOf(NotFoundException);
       done();

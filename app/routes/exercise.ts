@@ -10,14 +10,14 @@ import validate from "../http/middleware/ValidationMiddleware";
 import exerciseSchema from "../schema/ExerciseGetInfo";
 import getVMSchema from "../schema/ExerciseGetStart";
 
-// Gets the content and metadata of exercise
+// Get the exercise information
 router.get("/:id", validate(exerciseSchema), ExerciseController.getInfo);
 
-// Gets the status of the exercise
+// Getting status of the exercise
 router.get(
   "/:id/status",
   validate(exerciseSchema),
-  ExerciseController.getConst
+  ExerciseController.getStatusRequest
 );
 
 // Starts the virtual machine

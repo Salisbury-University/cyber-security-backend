@@ -9,13 +9,14 @@ export const AuthController = {
    * @param res {Response} Express response object
    * @param next {NextFunction} Express NextFunction (used for middleware)
    */
-  async login(req: Request, res: Response, next: NextFunction) {
+
+  async Login(req: Request, res: Response, next: NextFunction) {
     try {
-      const dat = await AuthService.validateLogin(
+      const token = await AuthService.ldapJs(
         req.body.username,
         req.body.password
       );
-      res.send(dat);
+      res.send({ token: token });
     } catch (error) {
       return next(error);
     }
