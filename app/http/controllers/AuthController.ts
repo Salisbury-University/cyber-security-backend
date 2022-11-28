@@ -12,11 +12,11 @@ export const AuthController = {
 
   async Login(req: Request, res: Response, next: NextFunction) {
     try {
-      const tok = await AuthService.ldapJs(
+      const token = await AuthService.ldapJs(
         req.body.username,
         req.body.password
       );
-      res.send(tok);
+      res.send(token);
     } catch (error) {
       return next(error);
     }

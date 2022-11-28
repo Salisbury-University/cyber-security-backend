@@ -70,13 +70,14 @@ export const AuthService = {
       throw new JwtMalformedException();
     }
 
+    // returns decoded token
     return payload;
   },
 
   /**
    *
    *
-   * @param {String} token Authorization token attached to the HTTP header
+   * @param {String} uid Authorization uid attached to the HTTP header
    * @return {users} Decoded jsonwebtoken
    * @throws {JwtMalformedException} Throws error when token is malformed or empty
    */
@@ -98,7 +99,7 @@ export const AuthService = {
       },
     });
     if (found === null) {
-      // will create JWT token if user id is not found
+      // will create a row inside the database if user id is not found
       const check = await prisma.users.create({
         data: {
           uid: uid,
@@ -135,7 +136,8 @@ export const AuthService = {
     var user = "";
 
     await client.bind(
-      "uid=" + uid + ",ou=users,dc=hslinux,dc=Salisbury,dc=edu",
+      config.app.dn,
+      "uid=" + uid + "," + config.app.dn,
       pass,
       async (err) => {
         // check to see if user returns then JWT sign and put inside User table
@@ -147,8 +149,6 @@ export const AuthService = {
         if (err == null) {
           console.log("pass");
           user = await this.jwtSign(uid);
-
-          // return user
         } else {
           user = err;
           console.log(err);
