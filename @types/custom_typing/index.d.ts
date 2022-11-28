@@ -13,6 +13,11 @@ declare global {
     preference: preference;
   };
 
+  type searchResult = {
+    search: string;
+    results: any;
+  };
+
   type userData = {
     user: Users;
   };
