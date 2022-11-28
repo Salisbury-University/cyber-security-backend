@@ -1,4 +1,4 @@
-import { preference } from "@prisma/client";
+import { preference, Users } from "@prisma/client";
 
 export {};
 
@@ -16,5 +16,9 @@ declare global {
   type searchResult = {
     search: string;
     results: any;
+  };
+
+  type userData = {
+    user: Users;
   };
 }

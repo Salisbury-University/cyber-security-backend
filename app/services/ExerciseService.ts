@@ -1,7 +1,6 @@
 import { marked } from "marked";
 import NotFoundException from "../exceptions/NotFoundException";
 import fs from "fs";
-import { string } from "zod";
 import { PrismaClient } from "@prisma/client";
 import UnprocessableEntityException from "../exceptions/UnprocessableEntityException";
 
@@ -36,7 +35,7 @@ export const ExerciseService = {
    * @return {Object} the MetaData being returned
    * @throws {NotFoundException} File is Not found exception handler
    */
-  getMetaData(exerciseID: string): any {
+  getMetadata(exerciseID: string): Object {
     const fileLocation = "exercises/" + exerciseID + ".md";
     try {
       const fileContent = fs.readFileSync(fileLocation, "utf8");
@@ -120,7 +119,7 @@ export const ExerciseService = {
   },
 
   /**
-   * creates a Database.
+   * creates an entry in the database.
    *
    * @param {string} exerciseID id for an exercise
    * @return {JSON} the JSON being returned
@@ -154,7 +153,7 @@ export const ExerciseService = {
   fetchData(uid: string, exerciseID: string): string {
     try {
       const content = this.getContent(exerciseID);
-      const metadata = this.getMetaData(exerciseID);
+      const metadata = this.getMetadata(exerciseID);
       const status = this.getStatus(uid, exerciseID);
       const display = {};
 

@@ -18,3 +18,8 @@ model preference {
   uid      String    @unique
   darkmode  Boolean   @default(false)
 }
+
+model Users{
+uid String @unique
+token String
+}
