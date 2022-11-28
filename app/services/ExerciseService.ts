@@ -34,10 +34,10 @@ export const ExerciseService = {
    * Gets the MetaData from the file
    *
    * @param {string} exerciseTitle title of the exercise
-   * @return {Object} the MetaData being returned
+   * @return {any} the MetaData being returned
    * @throws {NotFoundException} File is Not found exception handler
    */
-  getMetaData(exerciseTitle: string): Object {
+  getMetaData(exerciseTitle: string): any {
     const filename = this.findFilename(exerciseTitle);
     const fileLocation = "exercises/" + filename + ".md";
     try {
@@ -75,28 +75,31 @@ export const ExerciseService = {
    * @return {any} the data parsed being returned
    */
   getDataType(dataString: string): any {
-    if (s.startsWith("{") && s.endsWith("}")) {
-      return Object(s);
-    } else if (s.indexOf("/") !== -1 && !isNaN(Date.parse(s))) {
-      return new Date(s).toLocaleString();
-    } else if (!isNaN(parseFloat(s))) {
-      return Number(s);
-    } else if (s.startsWith("[") && s.endsWith("]")) {
-      s = s.substring(1, s.length - 1);
-      const split = s.split(", ");
+    if (dataString.startsWith("{") && dataString.endsWith("}")) {
+      return Object(dataString);
+    } else if (
+      dataString.indexOf("/") !== -1 &&
+      !isNaN(Date.parse(dataString))
+    ) {
+      return new Date(dataString).toLocaleString();
+    } else if (!isNaN(parseFloat(dataString))) {
+      return Number(dataString);
+    } else if (dataString.startsWith("[") && dataString.endsWith("]")) {
+      dataString = dataString.substring(1, dataString.length - 1);
+      const split = dataString.split(", ");
       for (let i = 0; i < split.length; i++) {
         // Gets rid of double quotation
         split[i] = split[i].substring(1, split[i].length - 1);
       }
       return split;
-    } else if (s.toLowerCase() == "true") {
+    } else if (dataString.toLowerCase() == "true") {
       return Boolean(true);
-    } else if (s.toLowerCase() == "false") {
+    } else if (dataString.toLowerCase() == "false") {
       return Boolean(false);
     } else {
       // Gets rid of double quotation
-      s = s.substring(1, s.length - 1);
-      return s;
+      dataString = dataString.substring(1, dataString.length - 1);
+      return dataString;
     }
   },
 

@@ -8,6 +8,6 @@ import validate from "../http/middleware/ValidationMiddleware";
 import loginSchema from "../schema/AuthLoginPost";
 
 // Login route
-router.post("/login", validate(loginSchema), AuthController.login);
+router.post("/login", validate(loginSchema), AuthController.Login);
 
 export default router;

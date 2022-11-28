@@ -602,7 +602,7 @@ export const VirtualMachineService = {
    * @returns {boolean}     - Returns true if it is in whitelist otherwise return false
    */
   verifyNode(node: string): boolean {
-    config.app.anton.array.forEach((element) => {
+    config.app.anton.forEach((element) => {
       if (element === node) {
         return true;
       }
