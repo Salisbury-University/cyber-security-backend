@@ -12,7 +12,9 @@ export const ExercisesController = {
    */
   fetchList(req: Request, res: Response, next: NextFunction) {
     try {
-      res.send(JSON.parse(JSON.stringify(ExercisesService.fetchList())));
+      res.send(
+        JSON.parse(JSON.stringify({ exercises: ExercisesService.fetchList() }))
+      );
     } catch (e) {
       return next(e);
     }

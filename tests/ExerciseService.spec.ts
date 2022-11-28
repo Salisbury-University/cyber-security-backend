@@ -1,8 +1,6 @@
 import { test } from "@japa/runner";
-
 import { ExerciseService } from "../app/services/ExerciseService";
 import NotFoundException from "../app/exceptions/NotFoundException";
-import { json } from "stream/consumers";
 import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();

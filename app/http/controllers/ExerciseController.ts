@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { ExerciseService } from "../../services/ExerciseService";
+import { VirtualMachineService } from "../../services/VirtualMachineService";
 
 export const ExerciseController = {
   /**
@@ -23,12 +24,32 @@ export const ExerciseController = {
   },
 
   /**
+   * Handles the start vm request
+   *
+   * @param req {Request} Express request object
+   * @param res {Response} Express response object
+   * @param next {NextFunction} Express NextFunction (used for middleware)
+   * @throws {VirtualMachineConflictException} File is Not found
+   */
+  async requestVM(req: Request, res: Response, next: NextFunction) {
+    try {
+      res.send(
+        await VirtualMachineService.createVM(
+          req.user.uid,
+          String(req.params.id),
+          req.body.node
+        )
+      );
+    } catch (e) {
+      return next(e);
+    }
+  },
+  /**
    * Handles the getStatus request
    *
    * @param req {Request} Express request object
    * @param res {Response} Express response object
    * @param next {NextFunction} Express NextFunction (used for middleware)
-   *
    */
   getStatusRequest(req: Request, res: Response, next: NextFunction) {
     try {

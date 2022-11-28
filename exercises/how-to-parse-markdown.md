@@ -58,4 +58,3 @@ In the future we might look to add functionality by implementing new keys, such 
 - toc
 - description
 - search_exclude ?
-

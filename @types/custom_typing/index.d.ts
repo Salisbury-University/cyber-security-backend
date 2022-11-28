@@ -1,4 +1,4 @@
-import { preference, Users } from "@prisma/client";
+import { preference, VM, Users } from "@prisma/client";
 
 export {};
 
@@ -12,6 +12,10 @@ declare global {
 
   type PreferenceData = {
     preference: preference;
+  };
+
+  type VirtualMachineData = {
+    VM: VM;
   };
 
   type searchResult = {

@@ -7,6 +7,21 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model VM {
+  id            Int @id @default(autoincrement())
+  user            String
+  node            String 
+  vmId              String  
+  exerciseId        String 
+  ip              String 
+  port            String 
+  timeLimit       String 
+  timeStart       DateTime   @default(now())
+  timeEnd         DateTime  @default(now())
+  status          String    @default("stopped")
+  @@unique([user, exerciseId])
+}
+
 model Exercise {
   exerciseID String
   status String @default("incomplete")
