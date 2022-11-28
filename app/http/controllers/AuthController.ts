@@ -16,7 +16,7 @@ export const AuthController = {
         req.body.username,
         req.body.password
       );
-      res.send(token);
+      res.send({ token: token });
     } catch (error) {
       return next(error);
     }

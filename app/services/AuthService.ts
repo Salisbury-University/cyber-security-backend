@@ -6,8 +6,6 @@ import JwtMalformedException from "../exceptions/JwtMalformedException";
 import { PrismaClient, Users } from "@prisma/client";
 import ldapjs from "ldapjs";
 
-var server = ldapjs.createServer();
-
 const prisma = new PrismaClient();
 /**
  * All of the functions regarding authorization
@@ -82,7 +80,10 @@ export const AuthService = {
    * @throws {JwtMalformedException} Throws error when token is malformed or empty
    */
 
-  //will Sign and validate JWT token
+  /**
+   * will Sign and validate JWT token
+   *
+   * */
   async jwtSign(uid: string): Promise<string> {
     const jwtAll = jwt.sign(
       {
@@ -121,7 +122,10 @@ export const AuthService = {
     return jwtAll;
   },
 
-  //Implement ldap system for login to the salisbury university ldap
+  /**
+   * Implement ldap system for login to the salisbury university ldap
+   *
+   * */
   async ldapJs(uid: string, pass: string): Promise<string> {
     //creates connection with henson LDAPJS system
     const client = ldapjs.createClient({
