@@ -125,7 +125,7 @@ export const ExerciseService = {
   },
 
   /**
-   * creates a Database.
+   * creates an entry in the database.
    *
    * @param {string} exerciseTitle title of the exercise
    * @return {JSON} the JSON being returned

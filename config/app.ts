@@ -7,4 +7,6 @@ export default {
 	*/
   port: process.env.PORT ? process.env.PORT : 3000,
   ldap: process.env.LDAP ? process.env.LDAP : "",
+  secret: process.env.SECRET ? process.env.SECRET : "",
+  dn: process.env.DN ? process.env.DN : "",
 };

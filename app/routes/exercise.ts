@@ -9,4 +9,10 @@ import exerciseSchema from "../schema/ExerciseGetInfo";
 // Get the exercise information
 router.get("/:id", validate(exerciseSchema), ExerciseController.getInfo);
 
+router.get(
+  "/:id/status",
+  validate(exerciseSchema),
+  ExerciseController.getStatusRequest
+);
+
 export default router;
