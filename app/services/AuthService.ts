@@ -12,27 +12,6 @@ const prisma = new PrismaClient();
  */
 export const AuthService = {
   /**
-   * Validates Login for Username and Password
-   *
-   * @param uid username
-   * @param password password
-   * @returns token or throws an exception
-   */
-  async validateLogin(uid: string, password: string): Promise<String> {
-    return await axios
-      .post(config.app.ldap, {
-        uid: uid,
-        password: password,
-      })
-      .then(function (response) {
-        return response.data;
-      })
-      .catch(function (error) {
-        throw new InvalidCredentialException();
-      });
-  },
-
-  /**
    * Checks if the token starts with Bearer(JWT token) and a spcae afterward
    *
    * @param {String} token Authorization token attached to the HTTP header.
@@ -48,28 +27,18 @@ export const AuthService = {
   },
 
   /**
-   * Decode the Jsonwebtoken
+   *  Verifiy token that returns decoded token
    *
-   * @param {String} token Authorization token attached to the HTTP header
-   * @return {user} Decoded jsonwebtoken
-   * @throws {JwtMalformedException} Throws error when token is malformed or empty
+   * @param {String} token Jwt token that was created during login
+   * @returns {User} decoded token
    */
-
-  decodeToken(token: String): User {
-    const decoded: JwtPayload = jwt.decode(token, { json: true });
-    const payload: User = JSON.parse(JSON.stringify(decoded));
-
-    if (payload === null) {
+  verifyToken(token: String): User {
+    try {
+      const verified = jwt.verify(token, config.app.secret);
+      return verified;
+    } catch (e) {
       throw new JwtMalformedException();
     }
-
-    // IAT exists but ts kept giving error
-    if (payload.iat > Date.now()) {
-      throw new JwtMalformedException();
-    }
-
-    // returns decoded token
-    return payload;
   },
 
   /**

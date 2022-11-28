@@ -32,7 +32,7 @@ export default async function (
   // Assign user information
   // Returns the error(JWTMalformedException) if the token retuns null
   try {
-    req.user = AuthService.decodeToken(TOKEN.split(" ")[1]);
+    req.user = AuthService.verifyToken(TOKEN.split(" ")[1]);
   } catch (e) {
     return next(e);
   }
