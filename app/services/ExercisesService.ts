@@ -11,7 +11,7 @@ export const ExercisesService = {
    * @return {string []} List of exercise in max number
    * @throws {NotFoundException} Throws not found exception when exceeding max number
    */
-  fetchPage(page: string, pagination: number): string[] {
+  fetchPage(page: string, pagination: number): string[] | undefined {
     try {
       const max: number = pagination;
       const pageNumber: number = Number(page) - 1;
@@ -46,7 +46,7 @@ export const ExercisesService = {
    * @return {string []} List of all exercises user is able to see
    * @throws {NotFoundException} returns when function fails
    */
-  fetchList(): string[] {
+  fetchList(): string[] | undefined {
     try {
       const files: string[] = this.getAllExerciseFilename();
       const visibleExercise: string[] = [];

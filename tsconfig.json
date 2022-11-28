@@ -4,9 +4,7 @@
     "target": "es6",
     "rootDir": "./",
     "esModuleInterop": true,
-    "typeRoots": [
-      "@types",
-      "./node_modules/@types"
-    ]
-  }
+    "typeRoots": ["@types", "./node_modules/@types"]
+  },
+  "include": ["desc.d.ts"]
 }
