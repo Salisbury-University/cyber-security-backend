@@ -41,7 +41,7 @@ export const ExercisesService = {
   },
 
   /**
-   * Gets all the exercises from local folder
+   * Gets all the exercises from local folder and return the filename
    *
    * @return {string []} List of all exercises user is able to see
    * @throws {NotFoundException} returns when function fails
