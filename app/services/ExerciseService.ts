@@ -69,6 +69,42 @@ export const ExerciseService = {
   },
 
   /**
+   * Gets the MetaData from the file
+   *
+   * @param {string} filename filename of the exercise
+   * @return {any} the MetaData being returned
+   * @throws {NotFoundException} File is Not found exception handler
+   */
+  getMetaDataFromFile(filename: string): any {
+    const fileLocation = "exercises/" + filename + ".md";
+    try {
+      const fileContent = fs.readFileSync(fileLocation, "utf8");
+      const lexer = marked.lexer(fileContent);
+      let content = "";
+
+      for (let i = 0; i < lexer.length; i++) {
+        if (lexer[i].type == "hr") {
+          //i+1 after hr from lexer, holds the information from the frontmatter
+          content = lexer[i + 1].text;
+          break;
+        }
+      }
+      //Object to store the key and value
+      const metadata = {};
+
+      //Split by enter and get rid of last
+      const eachRow = content.split("\n");
+      for (let i = 0; i < eachRow.length; i++) {
+        // Split between key and value
+        const eachCol = eachRow[i].split(": ");
+        metadata[eachCol[0]] = this.getDataType(eachCol[1]);
+      }
+      return metadata;
+    } catch (e) {
+      throw new NotFoundException();
+    }
+  },
+  /**
    * Gets DataType and splits it up
    *
    * @param {string} dataString string to convert to corresponding datatype
@@ -176,12 +212,18 @@ export const ExerciseService = {
     }
   },
 
+  /**
+   * returns file name from the title
+   *
+   * @param {string} exerciseTitle - title of the exercise
+   * @returns {string} filename
+   */
   findFilename(exerciseTitle: string): string {
     const files = ExercisesService.getAllExerciseFilename();
     for (let i = 0; i < files.length; i++) {
       const currFile = files[i];
 
-      const metadata = this.getMetaData(currFile);
+      const metadata = this.getMetaDataFromFile(currFile);
       if (metadata.title === exerciseTitle) {
         return currFile;
       }

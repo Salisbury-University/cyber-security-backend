@@ -53,10 +53,10 @@ export const ExercisesService = {
 
       // Check if it's hidden
       for (let i = 0; i < files.length; i++) {
-        const metadata = ExerciseService.getMetaData(files[i]);
+        const metadata = ExerciseService.getMetaDataFromFile(files[i]);
         const json = JSON.parse(JSON.stringify(metadata));
         if (json.hidden != true) {
-          visibleExercise.push(files[i]);
+          visibleExercise.push(json.title);
         }
       }
 

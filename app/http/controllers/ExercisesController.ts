@@ -12,15 +12,7 @@ export const ExercisesController = {
    */
   fetchList(req: Request, res: Response, next: NextFunction) {
     try {
-      res.send(
-        {exercises:
-          JSON.parse(
-            JSON.stringify(
-              ExercisesService.fetchList()
-            )
-          )
-        }
-      );
+      res.send({ exercises: ExercisesService.fetchList() });
     } catch (e) {
       return next(e);
     }
@@ -39,15 +31,12 @@ export const ExercisesController = {
       return next(new UnprocessableEntityException());
     }
     try {
-      res.send(
-        {exercises:
-          JSON.parse(
-            JSON.stringify(
-              ExercisesService.fetchPage(req.params.page, req.body.pagination)
-            )
-          )
-        }
-      );
+      res.send({
+        exercises: ExercisesService.fetchPage(
+          req.params.page,
+          req.body.pagination
+        ),
+      });
     } catch (e) {
       return next(e);
     }
