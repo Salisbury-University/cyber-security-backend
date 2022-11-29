@@ -13,7 +13,13 @@ export const ExercisesController = {
   fetchList(req: Request, res: Response, next: NextFunction) {
     try {
       res.send(
-        JSON.parse(JSON.stringify({ exercises: ExercisesService.fetchList() }))
+        {exercises:
+          JSON.parse(
+            JSON.stringify(
+              ExercisesService.fetchList()
+            )
+          )
+        }
       );
     } catch (e) {
       return next(e);
@@ -34,11 +40,13 @@ export const ExercisesController = {
     }
     try {
       res.send(
-        JSON.parse(
-          JSON.stringify(
-            ExercisesService.fetchPage(req.params.page, req.body.pagination)
+        {exercises:
+          JSON.parse(
+            JSON.stringify(
+              ExercisesService.fetchPage(req.params.page, req.body.pagination)
+            )
           )
-        )
+        }
       );
     } catch (e) {
       return next(e);
