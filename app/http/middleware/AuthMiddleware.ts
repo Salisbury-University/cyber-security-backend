@@ -1,7 +1,9 @@
 import { NextFunction, Request, Response } from "express";
 import { AuthService } from "../../services/AuthService";
 import UnauthorizedException from "../../exceptions/UnauthorizedException";
+import { PrismaClient } from "@prisma/client";
 
+const prisma = new PrismaClient();
 /**
  * An example of authentication middleware to create authorized views / routes.
  *
@@ -33,6 +35,27 @@ export default async function (
   // Returns the error(JWTMalformedException) if the token retuns null
   try {
     req.user = AuthService.verifyToken(TOKEN.split(" ")[1]);
+  } catch (e) {
+    return next(e);
+  }
+
+  // Check if the user is logged in from the database
+  try {
+    const user = await prisma.users.findFirst({
+      where: {
+        uid: req.user.uid,
+      },
+    });
+
+    // Check if user exists in the database
+    if (user == null) {
+      return next(new UnauthorizedException());
+    }
+
+    // User is not logged in
+    if (user.token == "") {
+      return next(new UnauthorizedException());
+    }
   } catch (e) {
     return next(e);
   }
