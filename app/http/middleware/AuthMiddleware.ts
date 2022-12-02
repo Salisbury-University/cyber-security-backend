@@ -53,7 +53,7 @@ export default async function (
     }
 
     // User is not logged in
-    if (user.token == "") {
+    if (user.token === "") {
       return next(new UnauthorizedException());
     }
   } catch (e) {

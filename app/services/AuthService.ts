@@ -108,26 +108,21 @@ export const AuthService = {
 
     var user = "";
 
-    await client.bind(
-      config.app.dn,
-      "uid=" + uid + "," + config.app.dn,
-      pass,
-      async (err) => {
-        // check to see if user returns then JWT sign and put inside User table
+    await client.bind("uid=" + uid + "," + config.app.dn, pass, async (err) => {
+      // check to see if user returns then JWT sign and put inside User table
 
-        client.unbind();
+      client.unbind();
 
-        console.log(user);
-        //Will sign the JSON webtoken if no error
-        if (err == null) {
-          console.log("pass");
-          user = await this.jwtSign(uid);
-        } else {
-          user = err;
-          console.log(err);
-        }
+      console.log(user);
+      //Will sign the JSON webtoken if no error
+      if (err == null) {
+        console.log("pass");
+        user = await this.jwtSign(uid);
+      } else {
+        user = err;
+        console.log(err);
       }
-    );
+    });
 
     var check = await prisma.users.findUnique({
       where: {
