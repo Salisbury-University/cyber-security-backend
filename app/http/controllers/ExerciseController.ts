@@ -32,11 +32,12 @@ export const ExerciseController = {
    * @throws {VirtualMachineConflictException} File is Not found
    */
   async requestVM(req: Request, res: Response, next: NextFunction) {
+    console.log("REQUEST VM " + Date());
     try {
       res.send(
         await VirtualMachineService.createVM(
           req.user.uid,
-          String(req.params.id),
+          decodeURIComponent(String(req.params.id)),
           req.body.node
         )
       );
