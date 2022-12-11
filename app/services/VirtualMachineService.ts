@@ -223,11 +223,13 @@ export const VirtualMachineService = {
     if (splitSec.length == 2) {
       secs = parseFloat(splitSec[0]);
     }
-    const currTime = new Date().getTime();
-    const endTime = new Date(
-      currTime + (hours * 60 * 60 + mins * 60 + secs) * 1000
+    const currTime = new Date();
+    const endTime = currTime.setHours(
+      currTime.getHours() + hours,
+      currTime.getMinutes() + mins,
+      currTime.getSeconds() + secs
     );
-    return endTime;
+    return new Date(endTime);
   },
 
   /**
@@ -420,7 +422,6 @@ export const VirtualMachineService = {
       )
       .then((res) => {
         const data = res.data.data;
-        console.log(data);
         const keys = Object.keys(data);
         for (let i = 0; i < keys.length; i++) {
           const key = keys[i];
@@ -435,6 +436,7 @@ export const VirtualMachineService = {
               const lastLetter = split[1].length - 1;
               if (split[1][lastLetter] == "G") {
                 const stringSize = split[1].substring(0, lastLetter);
+                // Conversion from bits to bytes
                 return Number(stringSize) * Math.pow(2, 30) * 8;
               }
             }
