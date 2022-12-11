@@ -23,7 +23,7 @@ export const VirtualMachineService = {
       .then(async (res) => {
         const data = res.data.data;
 
-        return data;
+        return { ...data, url: config.app.url, node: node, vmid: vmid };
 
         // // Need the port and ticket
         // const port = data.port;
