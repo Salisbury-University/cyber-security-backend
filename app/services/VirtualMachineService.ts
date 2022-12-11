@@ -10,6 +10,8 @@ export const VirtualMachineService = {
    * @returns {string}    - port number that it is being opened
    */
   async getVNCWebsocket(node: string, vmid: string): Promise<string> {
+    console.log("vncwebsocket");
+
     return await this.createAxiosWithToken()
       .post(
         config.app.url.concat(
@@ -17,13 +19,34 @@ export const VirtualMachineService = {
           node,
           "/qemu/",
           vmid,
-          "/vncproxy"
+          "/vncproxy?websocket=1"
         )
       )
       .then(async (res) => {
         const data = res.data.data;
+        const access = await axios
+          .create()
+          .post(
+            config.app.url.concat(
+              "/api2/json/access/ticket?",
+              "username=",
+              config.app.novncUser,
+              "&password=",
+              config.app.novncPass
+            )
+          )
+          .then((res) => {
+            const accessData = res.data.data;
+            return accessData;
+          });
 
-        return { ...data, url: config.app.url, node: node, vmid: vmid };
+        return {
+          ...data,
+          url: config.app.url.split("https://")[1],
+          node: node,
+          vmid: vmid,
+          access: { ...access },
+        };
 
         // // Need the port and ticket
         // const port = data.port;
