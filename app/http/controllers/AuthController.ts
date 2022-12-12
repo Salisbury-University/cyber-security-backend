@@ -21,4 +21,21 @@ export const AuthController = {
       return next(error);
     }
   },
+
+  /**
+   * Handles the logout request
+   *
+   * @param req {Request} Express request object
+   * @param res {Response} Express response object
+   * @param next {NextFunction} Express NextFunction (used for middleware)
+   */
+
+  async Logout(req: Request, res: Response, next: NextFunction) {
+    const authoraizationToken = req.headers.authorization
+      ? req.headers.authorization.split(" ")[1]
+      : "";
+    const token = await AuthService.Logout(authoraizationToken);
+
+    res.send("");
+  },
 };
