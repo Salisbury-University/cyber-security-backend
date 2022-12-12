@@ -7,7 +7,7 @@ updated: 04/11/2022 15:31:00
 vm: 100
 hidden: false
 timelimit: "4h"
-difficulty: 2
+difficulty: "Medium"
 categories: ["sql", "tcp", "attack on titan"]
 image: "https://th.bing.com/th/id/R.f15ba0ca3dc1e956f690880ab0fd74c8?rik=CZ784tKSsGErvw&pid=ImgRaw&r=0"
 ---
