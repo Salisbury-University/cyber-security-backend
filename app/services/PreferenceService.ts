@@ -13,14 +13,16 @@ export const PreferenceService = {
    * @throws {UnprocessableEntityException} Data is unprocessable
    */
 
-  async update(uid: string, data: PreferenceData): Promise<PreferenceData> {
+  async update(uid: string, data: any): Promise<PreferenceData> {
     try {
       const pref = data.preference;
       await prisma.preference.update({
         where: {
           uid,
         },
-        data: pref,
+        data: {
+          darkmode: pref.darkmode,
+        },
       });
       return data;
     } catch (e) {

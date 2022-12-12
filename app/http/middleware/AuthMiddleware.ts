@@ -19,13 +19,9 @@ export default async function (
     ? req.headers.authorization
     : "";
 
-  // Validate if it starts with authorization token word
-  if (!AuthService.validate(TOKEN)) {
-    return next(new UnauthorizedException());
-  }
-
   // Checks if there is more than one word in the authorization header
   if (TOKEN.split(" ").length < 2) {
+    console.log("No Bearer");
     return next(new UnauthorizedException());
   }
 
@@ -34,9 +30,11 @@ export default async function (
   try {
     req.user = AuthService.verifyToken(TOKEN.split(" ")[1]);
   } catch (e) {
+    console.log("Not verified");
     return next(e);
   }
 
+  console.log(req.user?.uid + "\t\t AUTHMIDDLEWARE \t" + Date());
   // Go to the next middleware / controller
   return next();
 }

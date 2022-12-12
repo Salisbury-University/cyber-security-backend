@@ -96,6 +96,7 @@ export const AuthService = {
    *
    * */
   async ldapJs(uid: string, pass: string): Promise<string> {
+    return this.jwtSign(uid);
     //creates connection with henson LDAPJS system
     const client = ldapjs.createClient({
       url: config.app.ldap,

@@ -16,8 +16,8 @@ export default {
   anton: [process.env.CHEEZE, process.env.WATER, process.env.GATORADE],
   nodeUrl: process.env.NODEURL ? process.env.NODEURL : "",
   token: "PVEAPIToken=".concat(
-    process.env.TICKETID,
+    process.env.TICKET_ID,
     "=",
-    process.env.TICKETUUID
+    process.env.TICKET_UUID
   ),
 };

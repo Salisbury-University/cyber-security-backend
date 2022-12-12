@@ -4,6 +4,7 @@ import axios from "axios";
 import { config } from "../../config";
 import InsufficientStorageException from "../exceptions/InsufficientStorageException";
 import VirtualMachineConflictException from "../exceptions/VirtualMachineConflictException";
+import NotFoundException from "../exceptions/NotFoundException";
 
 const prisma = new PrismaClient();
 
@@ -17,18 +18,25 @@ export const VirtualMachineService = {
    * @param {string} user current user
    * @param {string} exerciseId vmid of exercise
    * @param {string} nodeName node name to manual assign load
+   *
+   * @throws {NotFoundException} exercise not found
    * @return error from function
    */
   async createVM(
     user: string,
-    exerciseId: string,
+    exerciseTitle: string,
     nodeName: string = ""
-  ): Promise<VM> {
+  ): Promise<String> {
+    console.log("Create VM start");
     try {
       // Checks if the user already have vm running
       await this.checkRunningVM(user);
 
-      const exerciseNode = await this.getNodeOfExercise(exerciseId);
+      const exerciseNode = await this.getNodeOfExercise(exerciseTitle);
+
+      if (exerciseNode == undefined) {
+        throw new NotFoundException();
+      }
 
       let newNode = "";
       let verified = false;
@@ -43,31 +51,40 @@ export const VirtualMachineService = {
         newNode = nodeName;
       } else {
         // If not do load balancing
-        newNode = await this.selectNodeLoad(exerciseId, exerciseNode);
+        newNode = await this.selectNodeLoad(
+          exerciseNode.vmid,
+          exerciseNode.node
+        );
       }
 
       const listOfVM = await this.getListofUsedVMID();
 
       // Assign new vmid depending on the current vm
       const vmPrisma = await this.assignNewVMID(
-        exerciseId,
+        exerciseTitle,
         user,
         newNode,
         listOfVM
       );
 
       const newId = String(vmPrisma.vmId);
-      await this.cloneTemplate(exerciseId, exerciseNode, newId);
+      await this.cloneTemplate(exerciseNode.vmid, exerciseNode.node, newId);
 
-      if (newNode !== exerciseNode) {
-        await this.migrateTemplate(newId, exerciseNode, newNode);
+      if (newNode !== exerciseNode.node) {
+        await this.migrateTemplate(newId, exerciseNode.node, newNode);
       }
 
       await this.startVM(newId, newNode);
 
       return vmPrisma;
     } catch (e) {
-      return e;
+      if (e.status === 409) {
+        throw new VirtualMachineConflictException();
+      } else if (e.status === 404) {
+        throw new NotFoundException();
+      } else if (e.status === 507) {
+        throw new InsufficientStorageException();
+      }
     }
   },
   /**
@@ -82,6 +99,7 @@ export const VirtualMachineService = {
   async checkRunningVM(
     user: string
   ): Promise<void | VirtualMachineConflictException> {
+    console.log("Check Running VM Start");
     const VM = await prisma.vM.findFirst({
       where: {
         user: user,
@@ -105,11 +123,12 @@ export const VirtualMachineService = {
    * @return {string} newId to use for cloning
    */
   async assignNewVMID(
-    exerciseId: string,
+    exerciseTitle: string,
     user: string,
     newLoad: string,
     listOfVM: string[]
   ): Promise<VM> {
+    console.log("assingNew VMID start");
     let newId: number = minVMID;
 
     // Find the list number of VMID without range
@@ -122,7 +141,7 @@ export const VirtualMachineService = {
     }
 
     // Get the end time of the vmid
-    const metadata: Object = ExerciseService.getMetaData(exerciseId);
+    const metadata: Object = ExerciseService.getMetaData(exerciseTitle);
     const endTime: Date = this.getVMEndTime(metadata["timelimit"]);
 
     const stringId = String(newId);
@@ -130,18 +149,18 @@ export const VirtualMachineService = {
     // Check if it already exist
     const vmUser = await prisma.vM.findFirst({
       where: {
-        user: user,
-        exerciseId: exerciseId,
+        user,
+        exerciseTitle,
       },
     });
     if (vmUser === null) {
       // Create the to vmid so that it will be there
       return await prisma.vM.create({
         data: {
-          user: user,
+          user,
           vmId: stringId,
           node: newLoad,
-          exerciseId: exerciseId,
+          exerciseTitle,
           ip: "",
           port: "",
           timeLimit: metadata["timelimit"],
@@ -152,16 +171,16 @@ export const VirtualMachineService = {
     } else {
       return await prisma.vM.update({
         where: {
-          user_exerciseId: {
+          user_exerciseTitle: {
             user: user,
-            exerciseId: exerciseId,
+            exerciseTitle,
           },
         },
         data: {
           user: user,
           vmId: stringId,
           node: newLoad,
-          exerciseId: exerciseId,
+          exerciseTitle,
           ip: "",
           port: "",
           timeLimit: metadata["timelimit"],
@@ -179,6 +198,7 @@ export const VirtualMachineService = {
    * @returns {Date} Get epoch end time
    */
   getVMEndTime(timeLimit: string): Date {
+    console.log("get vm end time start");
     const lowerCaseTime = timeLimit.toLowerCase();
     let hours = 0,
       mins = 0,
@@ -203,9 +223,13 @@ export const VirtualMachineService = {
     if (splitSec.length == 2) {
       secs = parseFloat(splitSec[0]);
     }
-    const currTime = new Date().getTime();
-    const endTime = new Date(currTime + (hours * 60 * 60 + mins * 60 + secs));
-    return endTime;
+    const currTime = new Date();
+    const endTime = currTime.setHours(
+      currTime.getHours() + hours,
+      currTime.getMinutes() + mins,
+      currTime.getSeconds() + secs
+    );
+    return new Date(endTime);
   },
 
   /**
@@ -215,6 +239,7 @@ export const VirtualMachineService = {
    * @param {string} node node where vm is located at
    */
   startVM(vmid: string, node: string): void {
+    console.log("start vm" + vmid);
     this.createAxiosWithToken().post(
       config.app.nodeUrl.concat(
         "/api2/json/nodes/",
@@ -237,6 +262,7 @@ export const VirtualMachineService = {
     exerciseNode: string,
     newNode: string
   ): Promise<void> {
+    console.log("migrate vm" + newId);
     // Migrate the vm to new node
     await this.createAxiosWithToken()
       .post(
@@ -269,6 +295,7 @@ export const VirtualMachineService = {
     exerciseNode: string,
     newId: string
   ): Promise<string> {
+    console.log("clone start");
     // This part clones the exercise vm to newid
     await this.createAxiosWithToken()
       .post(
@@ -302,6 +329,7 @@ export const VirtualMachineService = {
     exerciseId: string,
     exerciseNode: string
   ): Promise<string> {
+    console.log("select Node");
     // Gets the list of node (includes node name / cpu usage / disk avaliable)
     const node: object = [];
 
@@ -381,6 +409,7 @@ export const VirtualMachineService = {
    * @return {any} size of the template
    */
   async getSizeTemplate(vmid: string, nodeName: string): Promise<Number> {
+    console.log("get size template");
     return await this.createAxiosWithToken()
       .get(
         config.app.nodeUrl.concat(
@@ -407,6 +436,7 @@ export const VirtualMachineService = {
               const lastLetter = split[1].length - 1;
               if (split[1][lastLetter] == "G") {
                 const stringSize = split[1].substring(0, lastLetter);
+                // Conversion from bits to bytes
                 return Number(stringSize) * Math.pow(2, 30) * 8;
               }
             }
@@ -432,6 +462,7 @@ export const VirtualMachineService = {
    * @returns {Object} returns node information of cluster
    */
   async getListofNodes(): Promise<any> {
+    console.log("get list of nodes");
     return await this.createAxiosWithToken()
       .get(config.app.nodeUrl.concat("/api2/json/nodes"))
       .then((res) => {
@@ -445,6 +476,7 @@ export const VirtualMachineService = {
    * @returns {string []} Returns list of vm
    */
   async getListofUsedVMID(): Promise<string[]> {
+    console.log("Get list of vm used");
     let listVM: string[] = [];
 
     // Get list of nodes in cluster
@@ -464,6 +496,7 @@ export const VirtualMachineService = {
    * @returns return from api call
    */
   async getListOfVMInNode(node: string): Promise<any> {
+    console.log("get list of vm in node");
     const listVM = [];
     await this.createAxiosWithToken()
       .get(config.app.nodeUrl.concat("/api2/json/nodes/", node, "/qemu"))
@@ -489,10 +522,13 @@ export const VirtualMachineService = {
   /**
    * Gets the node where the exercise is located at
    *
-   * @param {string} exerciseId Id of the exercise
+   * @param {string} exericseTitle Title of the exercise
    * @returns
    */
-  async getNodeOfExercise(exerciseId: string): Promise<string> {
+  async getNodeOfExercise(exericseTitle: string): Promise<Object | undefined> {
+    console.log("getNodeOfExercise Start");
+    const metaData = ExerciseService.getMetaData(exericseTitle);
+    const id = metaData.vm;
     const nodes = await this.getListofNodes();
 
     let exerciseNode = "";
@@ -501,8 +537,8 @@ export const VirtualMachineService = {
       const currNode = nodes[i].node;
       const listOfVM = await this.getListOfVMInNode(currNode);
       for (let j = 0; j < listOfVM.length; j++) {
-        if (listOfVM[j] === exerciseId) {
-          return currNode;
+        if (parseInt(listOfVM[j]) === parseInt(id)) {
+          return { node: currNode, vmid: id };
         }
       }
     }
@@ -514,6 +550,7 @@ export const VirtualMachineService = {
    * @returns Array of vmid
    */
   async getListOfRunningVM(node: string): Promise<any> {
+    console.log("Get list of running vm");
     const listVM = [];
     await this.createAxiosWithToken()
       .get(config.app.nodeUrl.concat("/api2/json/nodes/", node, "/qemu"))
@@ -533,6 +570,7 @@ export const VirtualMachineService = {
    * @param {string} node node where the process is being used
    */
   async waitForProcess(upid: string, node: string): Promise<void> {
+    console.log("Wait for process");
     while (true) {
       const loopProcess = await this.createAxiosWithToken()
         .get(
@@ -608,5 +646,37 @@ export const VirtualMachineService = {
       }
     });
     return false;
+  },
+
+  async weeklyVM(): Promise<Array<Object>> {
+    const sevenDays = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    let users = [];
+    const vm = await prisma.vM.findMany({
+      where: {
+        timeStart: {
+          gte: sevenDays,
+        },
+      },
+    });
+    if (vm != null) {
+      for (let i = 0; i < vm.length; i++) {
+        const user = vm[i].user;
+        const exerciseTitle = vm[i].exerciseTitle;
+        const status = await prisma.exercise.findUnique({
+          where: {
+            exerciseID_user: {
+              exerciseID: exerciseTitle,
+              user: user,
+            },
+          },
+        });
+        users.push({
+          user: user,
+          exerciseTitle: exerciseTitle,
+          status: status.status,
+        });
+      }
+    }
+    return users;
   },
 };

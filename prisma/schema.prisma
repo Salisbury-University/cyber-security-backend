@@ -12,14 +12,14 @@ model VM {
   user            String
   node            String 
   vmId              String  
-  exerciseId        String 
+  exerciseTitle        String 
   ip              String 
   port            String 
   timeLimit       String 
   timeStart       DateTime   @default(now())
   timeEnd         DateTime  @default(now())
   status          String    @default("stopped")
-  @@unique([user, exerciseId])
+  @@unique([user, exerciseTitle])
 }
 
 model Exercise {

@@ -3,15 +3,16 @@ import { ExerciseController } from "../http/controllers/ExerciseController";
 
 const router = express.Router();
 
-import AuthMiddleware from "../http/middleware/AuthMiddleware";
-router.use("/api/v1/auth", AuthMiddleware);
-
 import validate from "../http/middleware/ValidationMiddleware";
 import exerciseSchema from "../schema/ExerciseGetInfo";
 import getVMSchema from "../schema/ExerciseGetStart";
 
 // Get the exercise information
 router.get("/:id", validate(exerciseSchema), ExerciseController.getInfo);
+router.get("/status/weekly", ExerciseController.weeklyStatus);
+
+import AuthMiddleware from "../http/middleware/AuthMiddleware";
+router.use(AuthMiddleware);
 
 // Getting status of the exercise
 router.get(
@@ -19,8 +20,9 @@ router.get(
   validate(exerciseSchema),
   ExerciseController.getStatusRequest
 );
+router.post("/:id/status", ExerciseController.updateStatus);
 
 // Starts the virtual machine
-router.post("/:id/start", validate(getVMSchema), ExerciseController.requestVM);
+router.post("/:id/start", ExerciseController.requestVM);
 
 export default router;
