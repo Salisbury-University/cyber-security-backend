@@ -41,5 +41,8 @@ router.use("/api/v1/preference", preferenceRouter);
 import searchRoute from "./search";
 router.use("/api/v1/search", searchRoute);
 
+import vmRoute from "./vm";
+router.use("/api/v1/vm", vmRoute);
+
 // Export the router
 export default router;

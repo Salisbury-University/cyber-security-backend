@@ -171,10 +171,7 @@ export const VirtualMachineService = {
     } else {
       return await prisma.vM.update({
         where: {
-          user_exerciseTitle: {
-            user: user,
-            exerciseTitle,
-          },
+          id: vmUser.id,
         },
         data: {
           user: user,
@@ -602,15 +599,20 @@ export const VirtualMachineService = {
    * @param {string} node node where the vm is stored
    */
   stopVM(vmid: string, node: string): void {
-    this.createAxiosWithToken().post(
-      config.app.nodeUrl.concat(
-        "/api2/json/",
-        node,
-        "/qemu/",
-        vmid,
-        "/status/stop"
+    this.createAxiosWithToken()
+      .post(
+        config.app.nodeUrl.concat(
+          "/api2/json/",
+          node,
+          "/qemu/",
+          vmid,
+          "/status/stop"
+        )
       )
-    );
+      .then((res) => {
+        const upid = res.data.data;
+        this.waitForProcess(upid, node);
+      });
   },
 
   /**
@@ -630,7 +632,63 @@ export const VirtualMachineService = {
           "/unlink?force=true"
         )
       )
-      .catch((error) => {});
+      .then((res) => {
+        const upid = res.data.data;
+        this.waitForProcess(upid, node);
+      });
+  },
+
+  async updateVMProcess(id: number) {
+    try {
+      await prisma.vM.update({
+        where: {
+          id: id,
+        },
+        data: {
+          status: "stopped",
+        },
+      });
+    } catch (e) {
+      return e;
+    }
+  },
+
+  async DeleteVM(uid: string, exerciseTitle: string) {
+    try {
+      const user = await prisma.vM.findFirst({
+        where: {
+          user: uid,
+          exerciseTitle: exerciseTitle,
+          status: "running",
+        },
+      });
+
+      const vmid = user.vmId;
+      const node = user.node;
+      const id = user.id;
+      this.stopVM(vmid, node);
+      this.unlinkVM(vmid, node);
+
+      await prisma.vM.update({
+        where: {
+          id,
+        },
+        data: {
+          status: "stopped",
+        },
+      });
+    } catch (e) {
+      return e;
+    }
+  },
+
+  async getVM(uid: string) {
+    return await prisma.vM.findFirst({
+      where: {
+        user: uid,
+        status: "running",
+      },
+    });
   },
 
   /**

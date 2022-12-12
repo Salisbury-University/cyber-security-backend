@@ -19,7 +19,6 @@ model VM {
   timeStart       DateTime   @default(now())
   timeEnd         DateTime  @default(now())
   status          String    @default("stopped")
-  @@unique([user, exerciseTitle])
 }
 
 model Exercise {
