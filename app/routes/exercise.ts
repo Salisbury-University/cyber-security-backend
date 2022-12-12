@@ -9,6 +9,7 @@ import getVMSchema from "../schema/ExerciseGetStart";
 
 // Get the exercise information
 router.get("/:id", validate(exerciseSchema), ExerciseController.getInfo);
+router.get("/status/weekly", ExerciseController.weeklyStatus);
 
 import AuthMiddleware from "../http/middleware/AuthMiddleware";
 router.use(AuthMiddleware);
@@ -19,6 +20,7 @@ router.get(
   validate(exerciseSchema),
   ExerciseController.getStatusRequest
 );
+router.post("/:id/status", ExerciseController.updateStatus);
 
 // Starts the virtual machine
 router.post("/:id/start", ExerciseController.requestVM);

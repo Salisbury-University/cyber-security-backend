@@ -52,12 +52,31 @@ export const ExerciseController = {
    * @param res {Response} Express response object
    * @param next {NextFunction} Express NextFunction (used for middleware)
    */
-  getStatusRequest(req: Request, res: Response, next: NextFunction) {
+  async getStatusRequest(req: Request, res: Response, next: NextFunction) {
     try {
-      const saveStatus = ExerciseService.getStatus(
-        req.params.uid,
-        req.params.exerciseID
+      const saveStatus = await ExerciseService.getStatus(
+        req.user.uid,
+        req.params.id
       );
+    } catch (e) {
+      return next(e);
+    }
+  },
+  async updateStatus(req: Request, res: Response, next: NextFunction) {
+    try {
+      await ExerciseService.updateStatus(
+        req.user.uid,
+        req.params.id,
+        req.body.status
+      );
+    } catch (e) {
+      return next(e);
+    }
+  },
+
+  async weeklyStatus(req: Request, res: Response, next: NextFunction) {
+    try {
+      res.send(await VirtualMachineService.weeklyVM());
     } catch (e) {
       return next(e);
     }

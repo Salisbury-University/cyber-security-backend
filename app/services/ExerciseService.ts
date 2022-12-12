@@ -150,17 +150,35 @@ export const ExerciseService = {
     uid: string,
     exerciseTitle: string
   ): Promise<String | boolean> {
-    const exerciseStatus = await prisma.exercise.findFirst({
+    let exerciseStatus = await prisma.exercise.findFirst({
       where: {
         exerciseID: exerciseTitle,
         user: uid,
       },
     });
     if (exerciseStatus == null) {
-      return false;
+      exerciseStatus = this.createDB(uid, exerciseTitle);
     }
 
     return exerciseStatus.status;
+  },
+
+  async updateStatus(uid: string, exerciseTitle: string, status: string) {
+    try {
+      const user = await prisma.exercise.update({
+        where: {
+          exerciseID_user: {
+            exerciseID: exerciseTitle,
+            user: uid,
+          },
+        },
+        data: {
+          status: status,
+        },
+      });
+    } catch (e) {
+      return e;
+    }
   },
 
   /**

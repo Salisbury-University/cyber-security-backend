@@ -647,4 +647,36 @@ export const VirtualMachineService = {
     });
     return false;
   },
+
+  async weeklyVM(): Promise<Array<Object>> {
+    const sevenDays = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    let users = [];
+    const vm = await prisma.vM.findMany({
+      where: {
+        timeStart: {
+          gte: sevenDays,
+        },
+      },
+    });
+    if (vm != null) {
+      for (let i = 0; i < vm.length; i++) {
+        const user = vm[i].user;
+        const exerciseTitle = vm[i].exerciseTitle;
+        const status = await prisma.exercise.findUnique({
+          where: {
+            exerciseID_user: {
+              exerciseID: exerciseTitle,
+              user: user,
+            },
+          },
+        });
+        users.push({
+          user: user,
+          exerciseTitle: exerciseTitle,
+          status: status.status,
+        });
+      }
+    }
+    return users;
+  },
 };
