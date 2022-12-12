@@ -16,6 +16,7 @@ export const ExerciseService = {
    * @throws {NotFoundException} File is Not found exception handler
    */
   getContent(exerciseTitle: string): string {
+    console.log("GET CONTENT \t" + Date());
     const filename = this.findFilename(exerciseTitle);
     const fileLocation = "exercises/" + filename + ".md";
     try {
@@ -150,6 +151,9 @@ export const ExerciseService = {
     uid: string,
     exerciseTitle: string
   ): Promise<String | boolean> {
+    let status = "";
+
+    // Check if exercise exist in database
     let exerciseStatus = await prisma.exercise.findFirst({
       where: {
         exerciseID: exerciseTitle,
@@ -157,10 +161,22 @@ export const ExerciseService = {
       },
     });
     if (exerciseStatus == null) {
-      exerciseStatus = this.createDB(uid, exerciseTitle);
+      try {
+        // If user logged is logged in create the new row
+        if (uid !== "" && uid !== undefined) {
+          exerciseStatus = this.createDB(uid, exerciseTitle);
+          status = exerciseStatus.status;
+        } else {
+          status = "incomplete";
+        }
+      } catch (e) {
+        throw new UnprocessableEntityException();
+      }
+    } else {
+      status = exerciseStatus.status;
     }
 
-    return exerciseStatus.status;
+    return status;
   },
 
   async updateStatus(uid: string, exerciseTitle: string, status: string) {
@@ -193,6 +209,7 @@ export const ExerciseService = {
     exerciseTitle: string,
     status: string = "incomplete"
   ): Promise<void | UnprocessableEntityException> {
+    console.log("CREATE DB \t" + Date());
     try {
       const user = await prisma.exercise.create({
         data: {

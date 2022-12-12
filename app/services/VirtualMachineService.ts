@@ -720,6 +720,7 @@ export const VirtualMachineService = {
       for (let i = 0; i < vm.length; i++) {
         const user = vm[i].user;
         const exerciseTitle = vm[i].exerciseTitle;
+        const metadata = ExerciseService.getMetaData(exerciseTitle);
         const status = await prisma.exercise.findUnique({
           where: {
             exerciseID_user: {
@@ -732,6 +733,13 @@ export const VirtualMachineService = {
           user: user,
           exerciseTitle: exerciseTitle,
           status: status.status,
+          time: vm[i].timeStart.toLocaleString(),
+          metadata: {
+            category: metadata.category,
+            difficulty: metadata.difficulty,
+            timelimit: metadata.timelimit,
+            vm: metadata.vm,
+          },
         });
       }
     }
