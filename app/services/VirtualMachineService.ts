@@ -735,7 +735,7 @@ export const VirtualMachineService = {
           status: status.status,
           time: vm[i].timeStart.toLocaleString(),
           metadata: {
-            category: metadata.category,
+            category: metadata.categories,
             difficulty: metadata.difficulty,
             timelimit: metadata.timelimit,
             vm: metadata.vm,
