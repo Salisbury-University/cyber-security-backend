@@ -151,6 +151,7 @@ export const ExerciseService = {
     uid: string,
     exerciseTitle: string
   ): Promise<String | boolean> {
+    console.log("START GET STATUS");
     let status = "";
 
     // Check if exercise exist in database

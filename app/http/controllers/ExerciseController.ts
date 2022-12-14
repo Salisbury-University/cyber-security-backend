@@ -58,6 +58,7 @@ export const ExerciseController = {
         req.user.uid,
         req.params.id
       );
+      res.send(saveStatus);
     } catch (e) {
       return next(e);
     }

@@ -67,6 +67,7 @@ export const VirtualMachineService = {
         listOfVM
       );
 
+      console.log(vmPrisma);
       const newId = String(vmPrisma.vmId);
       await this.cloneTemplate(exerciseNode.vmid, exerciseNode.node, newId);
 
@@ -146,46 +147,26 @@ export const VirtualMachineService = {
 
     const stringId = String(newId);
 
-    // Check if it already exist
-    const vmUser = await prisma.vM.findFirst({
-      where: {
-        user,
-        exerciseTitle,
+    // Create the to vmid so that it will be there
+    console.log("here");
+    const currUser = await prisma.vM.create({
+      data: {
+        user: user,
+        vmId: stringId,
+        node: newLoad,
+        exerciseTitle: exerciseTitle,
+        ip: "",
+        port: "",
+        timeLimit: metadata["timelimit"],
+        timeEnd: endTime,
+        status: "running",
       },
     });
-    if (vmUser === null) {
-      // Create the to vmid so that it will be there
-      return await prisma.vM.create({
-        data: {
-          user,
-          vmId: stringId,
-          node: newLoad,
-          exerciseTitle,
-          ip: "",
-          port: "",
-          timeLimit: metadata["timelimit"],
-          timeEnd: endTime,
-          status: "running",
-        },
-      });
-    } else {
-      return await prisma.vM.update({
-        where: {
-          id: vmUser.id,
-        },
-        data: {
-          user: user,
-          vmId: stringId,
-          node: newLoad,
-          exerciseTitle,
-          ip: "",
-          port: "",
-          timeLimit: metadata["timelimit"],
-          timeEnd: endTime,
-          status: "running",
-        },
-      });
+
+    if (currUser == null) {
+      throw new VirtualMachineConflictException();
     }
+    return currUser;
   },
 
   /**
@@ -226,6 +207,7 @@ export const VirtualMachineService = {
       currTime.getMinutes() + mins,
       currTime.getSeconds() + secs
     );
+    console.log(endTime);
     return new Date(endTime);
   },
 
@@ -235,9 +217,9 @@ export const VirtualMachineService = {
    * @param {string} vmid id of vm
    * @param {string} node node where vm is located at
    */
-  startVM(vmid: string, node: string): void {
+  async startVM(vmid: string, node: string): Promise<void> {
     console.log("start vm" + vmid);
-    this.createAxiosWithToken().post(
+    await this.createAxiosWithToken().post(
       config.app.nodeUrl.concat(
         "/api2/json/nodes/",
         node,
@@ -422,11 +404,11 @@ export const VirtualMachineService = {
         const keys = Object.keys(data);
         for (let i = 0; i < keys.length; i++) {
           const key = keys[i];
-
           // Check if the the key starts with ide or scsi
           if (key.includes("ide") || key.includes("scsi")) {
             const split = data[key].split("size=");
-            if (split.length > 2) {
+            console.log(data[key]);
+            if (split.length[0] == "" || split.length[1] == "") {
               continue;
             } else {
               // Last letter is G (gigabyte): hit the jackpot
@@ -598,20 +580,21 @@ export const VirtualMachineService = {
    * @param {string} vmid vmid of VM
    * @param {string} node node where the vm is stored
    */
-  stopVM(vmid: string, node: string): void {
-    this.createAxiosWithToken()
+  async stopVM(vmid: string, node: string): Promise<void> {
+    console.log("STOP VM START");
+    await this.createAxiosWithToken()
       .post(
         config.app.nodeUrl.concat(
-          "/api2/json/",
+          "/api2/json/nodes/",
           node,
           "/qemu/",
           vmid,
           "/status/stop"
         )
       )
-      .then((res) => {
+      .then(async (res) => {
         const upid = res.data.data;
-        this.waitForProcess(upid, node);
+        await this.waitForProcess(upid, node);
       });
   },
 
@@ -621,39 +604,43 @@ export const VirtualMachineService = {
    * @param {string} vmid vmid of VM
    * @param {string} node node where the vm is stored
    */
-  unlinkVM(vmid: string, node: string): void {
-    this.createAxiosWithToken()
-      .put(
-        config.app.nodeUrl.concat(
-          "/api2/json/",
-          node,
-          "/qemu/",
-          vmid,
-          "/unlink?force=true"
-        )
+  async unlinkVM(vmid: string, node: string): Promise<void> {
+    console.log("UNLINK VM START");
+    console.log(
+      config.app.nodeUrl.concat(
+        "/api2/json/nodes/",
+        node,
+        "/qemu/",
+        vmid,
+        "/unlink?force=1"
       )
-      .then((res) => {
-        const upid = res.data.data;
-        this.waitForProcess(upid, node);
-      });
-  },
-
-  async updateVMProcess(id: number) {
-    try {
-      await prisma.vM.update({
-        where: {
-          id: id,
+    );
+    await fetch(
+      config.app.nodeUrl.concat(
+        "/api2/json/nodes/",
+        node,
+        "/qemu/",
+        vmid,
+        "/unlink"
+      ),
+      {
+        method: "PUT",
+        headers: {
+          Authorization: config.app.token,
         },
-        data: {
-          status: "stopped",
-        },
+      }
+    )
+      .then(async (res) => {
+        const upid = res;
+        // await this.waitForProcess(upid, node);
+      })
+      .catch((err) => {
+        console.log(err);
       });
-    } catch (e) {
-      return e;
-    }
   },
 
   async DeleteVM(uid: string, exerciseTitle: string) {
+    console.log("DELETE START");
     try {
       const user = await prisma.vM.findFirst({
         where: {
@@ -663,11 +650,14 @@ export const VirtualMachineService = {
         },
       });
 
+      if (user == null) {
+        return;
+      }
       const vmid = user.vmId;
       const node = user.node;
       const id = user.id;
-      this.stopVM(vmid, node);
-      this.unlinkVM(vmid, node);
+      await this.stopVM(vmid, node);
+      // await this.unlinkVM(vmid, node);
 
       await prisma.vM.update({
         where: {
@@ -707,6 +697,7 @@ export const VirtualMachineService = {
   },
 
   async weeklyVM(): Promise<Array<Object>> {
+    console.log("WEEKYL START");
     const sevenDays = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
     let users = [];
     const vm = await prisma.vM.findMany({
@@ -729,6 +720,7 @@ export const VirtualMachineService = {
             },
           },
         });
+        console.log(status);
         users.push({
           user: user,
           exerciseTitle: exerciseTitle,
@@ -743,6 +735,7 @@ export const VirtualMachineService = {
         });
       }
     }
+    console.log(users);
     return users;
   },
 };
