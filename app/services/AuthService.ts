@@ -96,7 +96,7 @@ export const AuthService = {
    *
    * */
   async ldapJs(uid: string, pass: string): Promise<string> {
-    return this.jwtSign(uid);
+    // return this.jwtSign(uid);
     //creates connection with henson LDAPJS system
     const client = ldapjs.createClient({
       url: config.app.ldap,
@@ -140,5 +140,26 @@ export const AuthService = {
     }
 
     return check.token;
+  },
+
+  async Logout(token: String): Promise<void> {
+    if (token == "") {
+      return;
+    }
+
+    try {
+      // Verifiy token that returns decoded token
+      const verified = this.verifyToken(token);
+
+      // update users table setting token equal to empty string
+      const updateUser = await prisma.users.update({
+        where: {
+          uid: verified.uid,
+        },
+        data: {
+          token: "",
+        },
+      });
+    } catch (e) {}
   },
 };

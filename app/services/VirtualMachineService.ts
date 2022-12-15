@@ -720,7 +720,6 @@ export const VirtualMachineService = {
             },
           },
         });
-        console.log(status);
         users.push({
           user: user,
           exerciseTitle: exerciseTitle,
@@ -735,7 +734,6 @@ export const VirtualMachineService = {
         });
       }
     }
-    console.log(users);
     return users;
   },
 };

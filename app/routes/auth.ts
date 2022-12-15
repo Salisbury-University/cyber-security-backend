@@ -10,4 +10,8 @@ import loginSchema from "../schema/AuthLoginPost";
 // Login route
 router.post("/login", validate(loginSchema), AuthController.Login);
 
+import AuthMiddleware from "../http/middleware/AuthMiddleware";
+router.use(AuthMiddleware);
+router.post("/logout", AuthController.Logout);
+
 export default router;
